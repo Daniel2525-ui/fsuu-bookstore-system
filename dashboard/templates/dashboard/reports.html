@@ -1,0 +1,179 @@
+{% extends "dashboard/index.html" %}
+
+{% block title %}FSUU System Bookstore - Sales Reports{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="d-flex align-items-start justify-content-between mb-2">
+    <div>
+        <h4 class="fw-semibold fs-2 mb-1">Sales Reports</h4>
+        <p class="text-muted mb-0">Overview of revenue, orders, and product performance.</p>
+    </div>
+    <small class="text-muted mt-1">{{ today }}</small>
+</div>
+
+<hr class="mb-4">
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+
+    <div class="col-lg-2 col-md-4 col-12">
+        <div class="card border-0 shadow-sm p-3 stat-card h-100">
+            <small class="text-muted">Total Revenue</small>
+            <h5 class="fw-bold my-1">&#8369;{{ total_revenue|floatformat:2 }}</h5>
+            <small class="text-muted">All time</small>
+        </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-12">
+        <div class="card border-0 shadow-sm p-3 stat-card h-100">
+            <small class="text-muted">This Month</small>
+            <h5 class="fw-bold my-1">&#8369;{{ month_revenue|floatformat:2 }}</h5>
+            <small class="text-success">{{ month_orders }} order{{ month_orders|pluralize }}</small>
+        </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-12">
+        <div class="card border-0 shadow-sm p-3 stat-card h-100">
+            <small class="text-muted">This Week</small>
+            <h5 class="fw-bold my-1">&#8369;{{ week_revenue|floatformat:2 }}</h5>
+            <small class="text-muted">Last 7 days</small>
+        </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-12">
+        <div class="card border-0 shadow-sm p-3 stat-card h-100">
+            <small class="text-muted">Total Orders</small>
+            <h5 class="fw-bold my-1">{{ total_orders }}</h5>
+            <small class="text-muted">All time</small>
+        </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-12">
+        <div class="card border-0 shadow-sm p-3 stat-card h-100">
+            <small class="text-muted">Avg. Order Value</small>
+            <h5 class="fw-bold my-1">&#8369;{{ avg_order|floatformat:2 }}</h5>
+            <small class="text-muted">Per transaction</small>
+        </div>
+    </div>
+
+    <div class="col-lg-2 col-md-4 col-12">
+        <div class="card border-0 shadow-sm p-3 stat-card h-100">
+            <small class="text-muted">Month Orders</small>
+            <h5 class="fw-bold my-1">{{ month_orders }}</h5>
+            <small class="text-muted">Last 30 days</small>
+        </div>
+    </div>
+
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row g-3 mb-4">
+
+    <!-- Daily Revenue — 30 days -->
+    <div class="col-lg-8 col-12">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <div class="mb-3">
+                <h6 class="fw-semibold mb-0">Daily Revenue</h6>
+                <small class="text-muted">Last 30 days</small>
+            </div>
+            <div style="position:relative; height:240px;">
+                <canvas id="dailyRevenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue by Category -->
+    <div class="col-lg-4 col-12">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <div class="mb-3">
+                <h6 class="fw-semibold mb-0">Revenue by Category</h6>
+                <small class="text-muted">All time</small>
+            </div>
+            <div class="d-flex align-items-center justify-content-center" style="height:200px;">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Charts Row 2 + Top Products Table -->
+<div class="row g-3">
+
+    <!-- Monthly Revenue — 12 months -->
+    <div class="col-lg-5 col-12">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <div class="mb-3">
+                <h6 class="fw-semibold mb-0">Monthly Revenue</h6>
+                <small class="text-muted">Last 12 months</small>
+            </div>
+            <div style="position:relative; height:220px;">
+                <canvas id="monthlyRevenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Products Table -->
+    <div class="col-lg-7 col-12">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <div class="mb-3">
+                <h6 class="fw-semibold mb-0">Top Selling Products</h6>
+                <small class="text-muted">All time, by units sold</small>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="small fw-semibold">#</th>
+                            <th class="small fw-semibold">Product</th>
+                            <th class="small fw-semibold">Units Sold</th>
+                            <th class="small fw-semibold">Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in top_products %}
+                        <tr>
+                            <td><span class="text-muted small">{{ forloop.counter }}</span></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded d-flex align-items-center justify-content-center flex-shrink-0"
+                                        style="width:32px; height:32px; background-color:rgba(13,110,253,0.08); color:#0d6efd;">
+                                        <i class="bi bi-book" style="font-size:0.8rem;"></i>
+                                    </div>
+                                    <small class="fw-semibold">{{ p.product__product_name }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary-subtle text-primary">{{ p.units_sold }} units</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold">&#8369;{{ p.revenue|floatformat:2 }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">
+                                <i class="bi bi-bar-chart fs-3 d-block mb-2"></i>
+                                No sales data yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Pass chart data to JS via json_script -->
+{{ daily_labels|json_script:"daily-labels" }}
+{{ daily_values|json_script:"daily-values" }}
+{{ cat_labels|json_script:"cat-labels" }}
+{{ cat_values|json_script:"cat-values" }}
+{{ monthly_labels|json_script:"monthly-labels" }}
+{{ monthly_values|json_script:"monthly-values" }}
+
+{% endblock %}

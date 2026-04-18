@@ -1,0 +1,59 @@
+.main-container {
+    height: 100vh;
+    overflow: hidden;
+}
+
+aside {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+main {
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.nav-link {
+    border-radius: 8px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.nav-link:hover, .nav-link.active {
+    background: rgba(13, 110, 253, 0.08);
+    color: #0d6efd !important;
+}
+.nav-link.active { font-weight: 600; }
+
+.stat-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.09) !important;
+}
+
+.live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #198754;
+    display: inline-block;
+    animation: pulse 1.8s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.75); }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #e9ecef 25%, #f8f9fa 50%, #e9ecef 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 4px;
+}
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.table-scroll { max-height: 300px; overflow-y: auto; }
+.table-scroll::-webkit-scrollbar { width: 4px; }
+.table-scroll::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 4px; }
