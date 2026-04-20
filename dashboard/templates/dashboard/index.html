@@ -1,277 +1,297 @@
-    {% load static %}
-    <!DOCTYPE html>
-    <html lang="en">
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}FSUU System Bookstore - Dashboard{% endblock %}</title>
-        <link rel="icon" type="image/png" href="{% static 'fsuu_bookstore_system/assets/FSUU logo.png' %}">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-        <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FSUU System Bookstore - Dashboard{% endblock %}</title>
+    <link rel="icon" type="image/jpeg" href="{% static 'assets/FSUU logo.jpg' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
 
-    <body>
+<body>
 
-        <div class="main-container d-flex">
+    <!-- Mobile Top Navbar (mobile only, <768px) -->
+    <nav class="mobile-topbar d-flex d-md-none align-items-center justify-content-between px-3 py-2 bg-white border-bottom">
+        <a href="{% url 'dashboard:home' %}" class="text-decoration-none text-dark fw-bold fs-6">
+            <span class="text-primary">FSUU</span> Bookstore
+        </a>
+        <button class="btn btn-sm btn-outline-secondary" id="mobileToggle" aria-label="Toggle sidebar">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+    </nav>
 
-            <!-- Sidebar -->
-            <aside class="border-end d-flex flex-column" style="width: 270px; height: 100vh;">
-                <div class="p-4 border-bottom">
-                    <a href="{% url 'dashboard:home' %}" class="aside-logo text-decoration-none text-dark fs-5 fw-bold">
-                        <span class="text-primary">FSUU</span> Bookstore
-                    </a>
-                    <p class="aside-subtitle mt-2 mb-0 fs-6">Sales Management System</p>
+    <!-- Sidebar Overlay (mobile only) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="main-container d-flex">
+
+        <!-- Sidebar -->
+        <aside class="sidebar border-end d-flex flex-column" id="sidebar">
+
+            <!-- Sidebar Header -->
+            <div class="sidebar-header border-bottom d-flex align-items-center justify-content-between">
+                <a href="{% url 'dashboard:home' %}" class="aside-logo text-decoration-none text-dark fw-bold text-nowrap sidebar-text">
+                    <span class="text-primary">FSUU</span> Bookstore
+                </a>
+                <!-- Tablet toggle button (tablet only) -->
+                <button class="btn btn-sm btn-outline-secondary d-none d-md-flex tablet-toggle" id="tabletToggle" aria-label="Toggle sidebar">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                <!-- Mobile close button -->
+                <button class="btn btn-sm btn-outline-secondary d-md-none" id="sidebarClose" aria-label="Close sidebar">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Nav -->
+            <nav class="py-3 flex-grow-1 overflow-hidden">
+                <small class="ps-4 text-muted sidebar-text d-block">Overview</small>
+                <ul class="navbar-nav flex-column mt-2">
+                    <li class="nav-item px-2">
+                        <a href="{% url 'dashboard:home' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2" data-page="dashboard" title="Dashboard">
+                            <i class="bi bi-speedometer2 nav-icon"></i>
+                            <span class="sidebar-text">Dashboard</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <small class="ps-4 text-muted mt-3 sidebar-text d-block">Catalog</small>
+                <ul class="navbar-nav flex-column mt-2">
+                    <li class="nav-item px-2">
+                        <a href="{% url 'dashboard:products' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2" data-page="products" title="Products">
+                            <i class="bi bi-box nav-icon"></i>
+                            <span class="sidebar-text">Products</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <small class="ps-4 text-muted mt-3 sidebar-text d-block">Sales</small>
+                <ul class="navbar-nav flex-column mt-2">
+                    <li class="nav-item px-2 pb-1">
+                        <a href="{% url 'dashboard:pos' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2" data-page="pos" title="Point of Sale">
+                            <i class="bi bi-cart nav-icon"></i>
+                            <span class="sidebar-text">Point of Sale</span>
+                        </a>
+                    </li>
+                    <li class="nav-item px-2">
+                        <a href="{% url 'dashboard:transactions' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2" data-page="transactions" title="Transactions">
+                            <i class="bi bi-arrow-left-right nav-icon"></i>
+                            <span class="sidebar-text">Transactions</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <small class="ps-4 text-muted mt-3 sidebar-text d-block">Reports</small>
+                <ul class="navbar-nav flex-column mt-2">
+                    <li class="nav-item px-2">
+                        <a href="{% url 'dashboard:reports' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2" data-page="reports" title="Sales Reports">
+                            <i class="bi bi-bar-chart nav-icon"></i>
+                            <span class="sidebar-text">Sales Reports</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- System Status -->
+            <div class="system-stats mt-auto border-top d-flex flex-column justify-content-center gap-1 sidebar-footer">
+                <small class="sidebar-text">System Status</small>
+                <span class="text-success d-flex align-items-center gap-2">
+                    <span class="live-dot flex-shrink-0"></span>
+                    <span class="sidebar-text text-nowrap">All systems operational</span>
+                </span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-grow-1 p-3 p-md-4 bg-light">
+            <div class="container-fluid py-2">
+                {% block content %}
+
+                <!-- Page Header -->
+                <div class="d-flex align-items-start justify-content-between mb-2">
+                    <div>
+                        <h4 class="fw-semibold fs-2 mb-1">Dashboard</h4>
+                        <p class="text-muted mb-0">Welcome back! Here's what's happening today.</p>
+                    </div>
+                    <small class="text-muted mt-1 d-none d-sm-block">{{ today }}</small>
                 </div>
 
-                <nav class="py-3 flex-grow-1">
-                    <small class="ps-4 text-muted">Overview</small>
-                    <ul class="navbar-nav flex-column mt-2">
-                        <li class="nav-item px-2">
-                            <a href="{% url 'dashboard:home' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2 fs-6" data-page="dashboard">
-                                <i class="bi bi-speedometer2"></i>
-                                <span>Dashboard</span>
-                            </a>
-                        </li>
-                    </ul>
+                <hr class="mb-4">
 
-                    <small class="ps-4 text-muted mt-3 d-block">Catalog</small>
-                    <ul class="navbar-nav flex-column mt-2">
-                        <li class="nav-item px-2">
-                            <a href="{% url 'dashboard:products' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2 fs-6" data-page="products">
-                                <i class="bi bi-box"></i>
-                                <span>Products</span>
-                            </a>
-                        </li>
-                    </ul>
-
-                    <small class="ps-4 text-muted mt-3 d-block">Sales</small>
-                    <ul class="navbar-nav flex-column mt-2">
-                        <li class="nav-item px-2 pb-1">
-                            <a href="{% url 'dashboard:pos' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2 fs-6" data-page="pos">
+                <!-- Stat Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-lg-3">
+                        <div class="card border-0 shadow-sm p-3 p-md-4 d-flex flex-row align-items-center justify-content-between stat-card">
+                            <div>
+                                <small class="text-muted">Total Revenue</small>
+                                <h5 class="fw-bold my-1">₱{{ total_revenue|floatformat:2 }}</h5>
+                                <small class="text-success d-flex align-items-center gap-1">
+                                    <i class="bi bi-arrow-up"></i>
+                                    <span class="d-none d-sm-inline">₱{{ revenue_this_week|floatformat:2 }} this week</span>
+                                    <span class="d-sm-none">This week</span>
+                                </small>
+                            </div>
+                            <div class="rounded-circle d-flex justify-content-center align-items-center stat-icon" style="background-color:rgba(13,110,253,0.1); color:#0d6efd;">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="card border-0 shadow-sm p-3 p-md-4 d-flex flex-row align-items-center justify-content-between stat-card">
+                            <div>
+                                <small class="text-muted">Total Sales</small>
+                                <h5 class="fw-bold my-1">{{ total_sales }}</h5>
+                                <small class="text-success">{{ sales_this_week }} this week</small>
+                            </div>
+                            <div class="rounded-circle d-flex justify-content-center align-items-center stat-icon" style="background-color:rgba(25,135,84,0.1); color:#198754;">
                                 <i class="bi bi-cart"></i>
-                                <span>Point of Sale</span>
-                            </a>
-                        </li>
-                        <li class="nav-item px-2">
-                            <a href="{% url 'dashboard:transactions' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2 fs-6" data-page="transactions">
-                                <i class="bi bi-arrow-left-right"></i>
-                                <span>Transactions</span>
-                            </a>
-                        </li>
-                    </ul>
-
-                    <small class="ps-4 text-muted mt-3 d-block">Reports</small>
-                    <ul class="navbar-nav flex-column mt-2">
-                        <li class="nav-item px-2">
-                            <a href="{% url 'dashboard:reports' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2 fs-6" data-page="reports">
-                                <i class="bi bi-bar-chart"></i>
-                                <span>Sales Reports</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-
-                <div class="system-stats mt-auto p-4 border-top d-flex flex-column justify-content-center gap-1">
-                    <small>System Status</small>
-                    <span class="text-success d-flex align-items-center gap-2">
-                        <span class="live-dot"></span> All systems operational
-                    </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="card border-0 shadow-sm p-3 p-md-4 d-flex flex-row align-items-center justify-content-between stat-card">
+                            <div>
+                                <small class="text-muted">Products</small>
+                                <h5 class="fw-bold my-1">{{ total_products }}</h5>
+                                <small style="color:#6f42c1;">Active in inventory</small>
+                            </div>
+                            <div class="rounded-circle d-flex justify-content-center align-items-center stat-icon" style="background-color:#f3f0ff; color:#6f42c1;">
+                                <i class="bi bi-box"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="card border-0 shadow-sm p-3 p-md-4 d-flex flex-row align-items-center justify-content-between stat-card">
+                            <div>
+                                <small class="text-muted">Low Stock</small>
+                                <h5 class="fw-bold my-1 text-warning">{{ low_stock_items.count }}</h5>
+                                <small class="text-muted">Need restocking</small>
+                            </div>
+                            <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex justify-content-center align-items-center stat-icon">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </aside>
 
-            <!-- Main -->
-            <main class="flex-grow-1 p-4 bg-light">
-                <div class="container py-2">
-                    {% block content %}
-
-                    <!-- Page Header -->
-                    <div class="d-flex align-items-start justify-content-between mb-2">
-                        <div>
-                            <h4 class="fw-semibold fs-2 mb-1">Dashboard</h4>
-                            <p class="text-muted mb-0">Welcome back! Here's what's happening today.</p>
-                        </div>
-                        <small class="text-muted mt-1">{{ today }}</small>
-                    </div>
-
-                    <hr class="mb-4">
-
-                    <!-- Stat Cards -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-lg-3 col-12 col-md-6">
-                            <div class="card border-0 shadow-sm p-4 d-flex flex-row align-items-center justify-content-between stat-card">
-                                <div>
-                                    <small class="text-muted">Total Revenue</small>
-                                    <h4 class="fw-bold my-1">₱{{ total_revenue|floatformat:2 }}</h4>
-                                    <small class="text-success d-flex align-items-center gap-1">
-                                        <i class="bi bi-arrow-up"></i> ₱{{ revenue_this_week|floatformat:2 }} this week
-                                    </small>
-                                </div>
-                                <div class="rounded-circle d-flex justify-content-center align-items-center fs-4" style="width:60px; height:60px; background-color:rgba(13,110,253,0.1); color:#0d6efd;">
-                                    <i class="card-icon bi bi-currency-dollar"></i>
-                                </div>
+                <!-- Charts Row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-lg-8">
+                        <div class="card border-0 shadow-sm p-3 p-md-4 h-100">
+                            <div class="mb-3">
+                                <h6 class="fw-semibold mb-0">Revenue Overview</h6>
+                                <small class="text-muted">Daily revenue — last 7 days</small>
                             </div>
-                        </div>
-
-                        <div class="col-lg-3 col-12 col-md-6">
-                            <div class="card border-0 shadow-sm p-4 d-flex flex-row align-items-center justify-content-between stat-card">
-                                <div>
-                                    <small class="text-muted">Total Sales</small>
-                                    <h4 class="fw-bold my-1">{{ total_sales }}</h4>
-                                    <small class="text-success">{{ sales_this_week }} sales this week</small>
-                                </div>
-                                <div class="rounded-circle d-flex justify-content-center align-items-center fs-4" style="width:60px; height:60px; background-color:rgba(25,135,84,0.1); color:#198754;">
-                                    <i class="card-icon bi bi-cart"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-3 col-12 col-md-6">
-                            <div class="card border-0 shadow-sm p-4 d-flex flex-row align-items-center justify-content-between stat-card">
-                                <div>
-                                    <small class="text-muted">Products</small>
-                                    <h4 class="fw-bold my-1">{{ total_products }}</h4>
-                                    <small style="color:#6f42c1;">Active in inventory</small>
-                                </div>
-                                <div class="rounded-circle d-flex justify-content-center align-items-center fs-4" style="width:60px; height:60px; background-color:#f3f0ff; color:#6f42c1;">
-                                    <i class="card-icon bi bi-box"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-3 col-12 col-md-6">
-                            <div class="card border-0 shadow-sm p-4 d-flex flex-row align-items-center justify-content-between stat-card">
-                                <div>
-                                    <small class="text-muted">Low Stock</small>
-                                    <h4 class="fw-bold my-1 text-warning">{{ low_stock_items.count }}</h4>
-                                    <small class="text-muted">Items need restocking</small>
-                                </div>
-                                <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex justify-content-center align-items-center" style="width:60px; height:60px; font-size:1.5rem;">
-                                    <i class="card-icon bi bi-exclamation-triangle"></i>
-                                </div>
+                            <div style="position:relative; height:220px;">
+                                <canvas id="revenueChart"></canvas>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Charts Row -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-lg-8 col-12">
-                            <div class="card border-0 shadow-sm p-4 h-100">
-                                <div class="mb-3">
-                                    <h6 class="fw-semibold mb-0">Revenue Overview</h6>
-                                    <small class="text-muted">Daily revenue — last 7 days</small>
-                                </div>
-                                <div style="position:relative; height:240px;">
-                                    <canvas id="revenueChart"></canvas>
-                                </div>
+                    <div class="col-12 col-lg-4">
+                        <div class="card border-0 shadow-sm p-3 p-md-4 h-100">
+                            <div class="mb-3">
+                                <h6 class="fw-semibold mb-0">Top Products</h6>
+                                <small class="text-muted">Units sold this week</small>
                             </div>
-                        </div>
-                        <div class="col-lg-4 col-12">
-                            <div class="card border-0 shadow-sm p-4 h-100">
-                                <div class="mb-3">
-                                    <h6 class="fw-semibold mb-0">Top Products</h6>
-                                    <small class="text-muted">Units sold this week</small>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-center" style="height:180px;">
-                                    <canvas id="topProductsChart"></canvas>
-                                </div>
+                            <div class="d-flex align-items-center justify-content-center" style="height:180px;">
+                                <canvas id="topProductsChart"></canvas>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Bottom Row -->
-                    <div class="row g-3">
-
-                        <!-- Recent Transactions -->
-                        <div class="col-lg-8 col-12">
-                            <div class="card border-0 shadow-sm p-4">
-                                <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <div>
-                                        <h6 class="fw-semibold mb-0">Recent Transactions</h6>
-                                        <small class="text-muted">Latest sales activity</small>
-                                    </div>
-                                    <a href="{% url 'dashboard:transactions' %}" class="btn btn-sm btn-outline-primary">View All</a>
-                                </div>
-                                <div class="table-scroll">
-                                    <table class="table table-hover align-middle mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th class="small fw-semibold">ID</th>
-                                                <th class="small fw-semibold">Items</th>
-                                                <th class="small fw-semibold">Amount</th>
-                                                <th class="small fw-semibold">Date</th>
-                                                <th class="small fw-semibold">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for tx in recent_transactions %}
-                                            <tr>
-                                                <td><span class="font-monospace small text-muted">#{{ tx.sales_id }}</span></td>
-                                                <td><small>{{ tx.details.count }} item{{ tx.details.count|pluralize }}</small></td>
-                                                <td><span class="fw-semibold">₱{{ tx.total_amount|floatformat:2 }}</span></td>
-                                                <td><small class="text-muted">{{ tx.sales_datetime|date:"M d, Y g:i A" }}</small></td>
-                                                <td>
-                                                    <span class="badge rounded-pill {% if tx.status == 'completed' %}bg-success-subtle text-success{% elif tx.status == 'pending' %}bg-warning-subtle text-warning{% else %}bg-danger-subtle text-danger{% endif %}">
-                                                        {{ tx.status|capfirst }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            {% empty %}
-                                            <tr>
-                                                <td colspan="5" class="text-center text-muted py-4">No transactions yet.</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Low Stock Alerts -->
-                        <div class="col-lg-4 col-12">
-                            <div class="card border-0 shadow-sm p-4 h-100">
-                                <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <div>
-                                        <h6 class="fw-semibold mb-0">Low Stock Alerts</h6>
-                                        <small class="text-muted">Items below threshold</small>
-                                    </div>
-                                    <a href="{% url 'dashboard:products' %}" class="btn btn-sm btn-outline-warning">Manage</a>
-                                </div>
-                                {% if low_stock_items %}
-                                    {% for item in low_stock_items %}
-                                    <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="bi bi-exclamation-circle text-warning"></i>
-                                            <small class="fw-medium text-truncate" style="max-width:140px;">{{ item.product_name }}</small>
-                                        </div>
-                                        <span class="badge bg-warning-subtle text-warning">{{ item.stock_quantity }} left</span>
-                                    </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <small class="text-success">
-                                        <i class="bi bi-check-circle me-1"></i> All items well-stocked
-                                    </small>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Chart data passed from Django views.py -->
-                    {{ chart_labels|json_script:"chart-labels" }}
-                    {{ chart_values|json_script:"chart-values" }}
-                    {{ top_labels|json_script:"top-labels" }}
-                    {{ top_values|json_script:"top-values" }}
-
-                    {% endblock %}
                 </div>
-            </main>
-        </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-        <script src="{% static 'js/dashboard.js' %}"></script>
-        {% block extra_js %}{% endblock %}
-    </body>
+                <!-- Bottom Row -->
+                <div class="row g-3">
+                    <div class="col-12 col-lg-8">
+                        <div class="card border-0 shadow-sm p-3 p-md-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div>
+                                    <h6 class="fw-semibold mb-0">Recent Transactions</h6>
+                                    <small class="text-muted">Latest sales activity</small>
+                                </div>
+                                <a href="{% url 'dashboard:transactions' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                            </div>
+                            <div class="table-scroll table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="small fw-semibold">ID</th>
+                                            <th class="small fw-semibold">Items</th>
+                                            <th class="small fw-semibold">Amount</th>
+                                            <th class="small fw-semibold d-none d-md-table-cell">Date</th>
+                                            <th class="small fw-semibold">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for tx in recent_transactions %}
+                                        <tr>
+                                            <td><span class="font-monospace small text-muted">#{{ tx.sales_id }}</span></td>
+                                            <td><small>{{ tx.details.count }} item{{ tx.details.count|pluralize }}</small></td>
+                                            <td><span class="fw-semibold">₱{{ tx.total_amount|floatformat:2 }}</span></td>
+                                            <td class="d-none d-md-table-cell"><small class="text-muted">{{ tx.sales_datetime|date:"M d, Y g:i A" }}</small></td>
+                                            <td>
+                                                <span class="badge rounded-pill {% if tx.status == 'completed' %}bg-success-subtle text-success{% elif tx.status == 'pending' %}bg-warning-subtle text-warning{% else %}bg-danger-subtle text-danger{% endif %}">
+                                                    {{ tx.status|capfirst }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">No transactions yet.</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
 
-    </html> 
+                    <div class="col-12 col-lg-4">
+                        <div class="card border-0 shadow-sm p-3 p-md-4 h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div>
+                                    <h6 class="fw-semibold mb-0">Low Stock Alerts</h6>
+                                    <small class="text-muted">Items below threshold</small>
+                                </div>
+                                <a href="{% url 'dashboard:products' %}" class="btn btn-sm btn-outline-warning">Manage</a>
+                            </div>
+                            {% if low_stock_items %}
+                                {% for item in low_stock_items %}
+                                <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-exclamation-circle text-warning"></i>
+                                        <small class="fw-medium text-truncate" style="max-width:140px;">{{ item.product_name }}</small>
+                                    </div>
+                                    <span class="badge bg-warning-subtle text-warning">{{ item.stock_quantity }} left</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <small class="text-success">
+                                    <i class="bi bi-check-circle me-1"></i> All items well-stocked
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {{ chart_labels|json_script:"chart-labels" }}
+                {{ chart_values|json_script:"chart-values" }}
+                {{ top_labels|json_script:"top-labels" }}
+                {{ top_values|json_script:"top-values" }}
+
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/dashboard.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>
