@@ -1,229 +1,278 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}FSUU System Bookstore - Dashboard{% endblock %}</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}FSUU Bookstore{% endblock %}</title>
     <link rel="icon" type="image/jpeg" href="{% static 'assets/FSUU logo.jpg' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
+<body class="overflow-hidden">
 
-<body>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <!-- Mobile Top Navbar (mobile only, <768px) -->
-    <nav class="mobile-topbar d-flex d-md-none align-items-center justify-content-between px-3 py-2 bg-white border-bottom">
-        <a href="{% url 'dashboard:home' %}" class="text-decoration-none text-dark fw-bold fs-6">
-            <span class="text-primary">FSUU</span> Bookstore
-        </a>
-        <button class="btn btn-sm btn-outline-secondary" id="mobileToggle" aria-label="Toggle sidebar">
-            <i class="bi bi-list fs-5"></i>
-        </button>
-    </nav>
+<div class="d-flex" style="height:100vh; overflow:hidden;">
 
-    <!-- Sidebar Overlay (mobile only) -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside id="sidebar"
+           class="sidebar sidebar--collapsed sidebar--no-transition
+                  d-flex flex-column flex-shrink-0 bg-white border-end">
 
-    <div class="main-container d-flex">
-
-        <!-- Sidebar -->
-        <aside class="sidebar border-end d-flex flex-column" id="sidebar">
-
-            <!-- Sidebar Header -->
-            <div class="sidebar-header border-bottom d-flex align-items-center justify-content-between">
-                <a href="{% url 'dashboard:home' %}" class="aside-logo text-decoration-none text-dark fw-bold text-nowrap sidebar-text">
+        <!-- Header -->
+        <div class="sidebar__header d-flex align-items-center gap-4 px-3 border-bottom flex-shrink-0"
+             style="min-height:62px;">
+            <button id="sidebarToggleDesktop"
+                    class="sidebar__toggle btn d-flex flex-column justify-content-center align-items-center gap-1
+                           border-0 rounded-2 p-0 flex-shrink-0"
+                    aria-label="Toggle sidebar">
+                <span class="hamburger-bar"></span>
+                <span class="hamburger-bar"></span>
+                <span class="hamburger-bar"></span>
+            </button>
+            <div class="sidebar__brand overflow-hidden text-nowrap py-3">
+                <a href="{% url 'dashboard:home' %}"
+                   class="text-decoration-none text-dark fw-bold fs-5 d-block">
                     <span class="text-primary">FSUU</span> Bookstore
                 </a>
-                <!-- Tablet toggle button (tablet only) -->
-                <button class="btn btn-sm btn-outline-secondary d-none d-md-flex tablet-toggle" id="tabletToggle" aria-label="Toggle sidebar">
-                    <i class="bi bi-list fs-5"></i>
-                </button>
-                <!-- Mobile close button -->
-                <button class="btn btn-sm btn-outline-secondary d-md-none" id="sidebarClose" aria-label="Close sidebar">
-                    <i class="bi bi-x-lg"></i>
-                </button>
+                <p class="text-muted mb-0" style="font-size:0.8rem;">Sales Management System</p>
             </div>
+        </div>
 
-            <!-- Nav -->
-            <nav class="py-3 flex-grow-1 overflow-hidden">
-                <small class="ps-4 text-muted sidebar-text d-block">Overview</small>
-                <ul class="navbar-nav flex-column mt-2">
-                    <li class="nav-item px-2">
-                        <a href="{% url 'dashboard:home' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2" data-page="dashboard" title="Dashboard">
-                            <i class="bi bi-speedometer2 nav-icon"></i>
-                            <span class="sidebar-text">Dashboard</span>
-                        </a>
-                    </li>
-                </ul>
+        <!-- Nav -->
+        <nav class="sidebar__nav flex-grow-1 py-2 overflow-hidden mt-3">
 
-                <small class="ps-4 text-muted mt-3 sidebar-text d-block">Catalog</small>
-                <ul class="navbar-nav flex-column mt-2">
-                    <li class="nav-item px-2">
-                        <a href="{% url 'dashboard:products' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2" data-page="products" title="Products">
-                            <i class="bi bi-box nav-icon"></i>
-                            <span class="sidebar-text">Products</span>
-                        </a>
-                    </li>
-                </ul>
+            <span class="sidebar__section-label d-block text-uppercase text-secondary px-3 pt-2 pb-1 text-nowrap overflow-hidden"
+                  style="font-size:0.67rem; letter-spacing:0.06em;">Overview</span>
+            <ul class="nav flex-column mb-2">
+                <li class="nav-item px-2">
+                    <a href="{% url 'dashboard:home' %}"
+                       class="nav-link d-flex align-items-center gap-2 rounded-2 py-2 px-2 text-secondary text-nowrap"
+                       data-page="dashboard" data-label="Dashboard">
+                        <i class="bi bi-speedometer2 flex-shrink-0" style="width:20px; text-align:center;"></i>
+                        <span class="nav-link__label">Dashboard</span>
+                    </a>
+                </li>
+            </ul>
 
-                <small class="ps-4 text-muted mt-3 sidebar-text d-block">Sales</small>
-                <ul class="navbar-nav flex-column mt-2">
-                    <li class="nav-item px-2 pb-1">
-                        <a href="{% url 'dashboard:pos' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2" data-page="pos" title="Point of Sale">
-                            <i class="bi bi-cart nav-icon"></i>
-                            <span class="sidebar-text">Point of Sale</span>
-                        </a>
-                    </li>
-                    <li class="nav-item px-2">
-                        <a href="{% url 'dashboard:transactions' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2" data-page="transactions" title="Transactions">
-                            <i class="bi bi-arrow-left-right nav-icon"></i>
-                            <span class="sidebar-text">Transactions</span>
-                        </a>
-                    </li>
-                </ul>
+            <span class="sidebar__section-label d-block text-uppercase text-secondary px-3 pt-3 pb-1 text-nowrap overflow-hidden"
+                  style="font-size:0.67rem; letter-spacing:0.06em;">Catalog</span>
+            <ul class="nav flex-column mb-2">
+                <li class="nav-item px-2">
+                    <a href="{% url 'dashboard:products' %}"
+                       class="nav-link d-flex align-items-center gap-2 rounded-2 py-2 px-2 text-secondary text-nowrap"
+                       data-page="products" data-label="Products">
+                        <i class="bi bi-box flex-shrink-0" style="width:20px; text-align:center;"></i>
+                        <span class="nav-link__label">Products</span>
+                    </a>
+                </li>
+            </ul>
 
-                <small class="ps-4 text-muted mt-3 sidebar-text d-block">Reports</small>
-                <ul class="navbar-nav flex-column mt-2">
-                    <li class="nav-item px-2">
-                        <a href="{% url 'dashboard:reports' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2" data-page="reports" title="Sales Reports">
-                            <i class="bi bi-bar-chart nav-icon"></i>
-                            <span class="sidebar-text">Sales Reports</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+            <span class="sidebar__section-label d-block text-uppercase text-secondary px-3 pt-3 pb-1 text-nowrap overflow-hidden"
+                  style="font-size:0.67rem; letter-spacing:0.06em;">Sales</span>
+            <ul class="nav flex-column mb-2">
+                <li class="nav-item px-2">
+                    <a href="{% url 'dashboard:pos' %}"
+                       class="nav-link d-flex align-items-center gap-2 rounded-2 py-2 px-2 text-secondary text-nowrap"
+                       data-page="pos" data-label="Point of Sale">
+                        <i class="bi bi-cart flex-shrink-0" style="width:20px; text-align:center;"></i>
+                        <span class="nav-link__label">Point of Sale</span>
+                    </a>
+                </li>
+                <li class="nav-item px-2">
+                    <a href="{% url 'dashboard:transactions' %}"
+                       class="nav-link d-flex align-items-center gap-2 rounded-2 py-2 px-2 text-secondary text-nowrap"
+                       data-page="transactions" data-label="Transactions">
+                        <i class="bi bi-arrow-left-right flex-shrink-0" style="width:20px; text-align:center;"></i>
+                        <span class="nav-link__label">Transactions</span>
+                    </a>
+                </li>
+            </ul>
 
-            <!-- System Status -->
-            <div class="system-stats mt-auto border-top d-flex flex-column justify-content-center gap-1 sidebar-footer">
-                <small class="sidebar-text">System Status</small>
-                <span class="text-success d-flex align-items-center gap-2">
-                    <span class="live-dot flex-shrink-0"></span>
-                    <span class="sidebar-text text-nowrap">All systems operational</span>
-                </span>
-            </div>
-        </aside>
+            <span class="sidebar__section-label d-block text-uppercase text-secondary px-3 pt-3 pb-1 text-nowrap overflow-hidden"
+                  style="font-size:0.67rem; letter-spacing:0.06em;">Reports</span>
+            <ul class="nav flex-column">
+                <li class="nav-item px-2">
+                    <a href="{% url 'dashboard:reports' %}"
+                       class="nav-link d-flex align-items-center gap-2 rounded-2 py-2 px-2 text-secondary text-nowrap"
+                       data-page="reports" data-label="Sales Reports">
+                        <i class="bi bi-bar-chart flex-shrink-0" style="width:20px; text-align:center;"></i>
+                        <span class="nav-link__label">Sales Reports</span>
+                    </a>
+                </li>
+            </ul>
 
-        <!-- Main Content -->
-        <main class="flex-grow-1 p-3 p-md-4 bg-light">
-            <div class="container-fluid py-2">
-                {% block content %}
+        </nav>
 
-                <!-- Page Header -->
-                <div class="d-flex align-items-start justify-content-between mb-2">
-                    <div>
-                        <h4 class="fw-semibold fs-2 mb-1">Dashboard</h4>
-                        <p class="text-muted mb-0">Welcome back! Here's what's happening today.</p>
-                    </div>
-                    <small class="text-muted mt-1 d-none d-sm-block">{{ today }}</small>
+        <!-- Footer -->
+        <div class="sidebar__footer d-flex flex-column gap-1 px-3 border-top overflow-hidden">
+            <span class="text-muted" style="font-size:0.8rem;">System Status</span>
+            <span class="d-flex align-items-center gap-2 text-success small">
+                <span class="live-dot rounded-circle bg-success flex-shrink-0"
+                      style="width:8px; height:8px;"></span>
+                <span class="sidebar__status-text text-nowrap">All systems operational</span>
+            </span>
+        </div>
+
+    </aside>
+    <!-- ═══ /SIDEBAR ═══ -->
+
+    <!-- ═══ MAIN ═══ -->
+    <main class="flex-grow-1 bg-light overflow-y-auto overflow-x-hidden" style="min-width:0; height:100vh;">
+
+        <!-- Mobile topbar (hidden on ≥ md) -->
+        <div id="mobileTopbar"
+             class="d-md-none d-flex align-items-center gap-3 px-3 py-2 bg-white border-bottom sticky-top"
+             style="z-index:50;">
+            <button id="sidebarToggleMobile"
+                    class="btn d-flex flex-column justify-content-center align-items-center gap-1
+                           border-0 rounded-2 p-0 flex-shrink-0"
+                    aria-label="Open menu"
+                    style="width:36px; height:36px;">
+                <span class="hamburger-bar"></span>
+                <span class="hamburger-bar"></span>
+                <span class="hamburger-bar"></span>
+            </button>
+            <span class="fw-bold fs-6"><span class="text-primary">FSUU</span> Bookstore</span>
+        </div>
+
+        <div class="container-xl py-4 px-3 px-lg-4">
+            {% block content %}
+
+            <!-- Page Header -->
+            <div class="d-flex align-items-start justify-content-between mb-2">
+                <div>
+                    <h4 class="fw-semibold fs-3 mb-1">Dashboard</h4>
+                    <p class="text-muted small mb-0">Welcome back! Here's what's happening today.</p>
                 </div>
+                <small class="text-muted mt-1">{{ today }}</small>
+            </div>
 
-                <hr class="mb-4">
+            <hr class="mb-4">
 
-                <!-- Stat Cards -->
-                <div class="row g-3 mb-4">
-                    <div class="col-6 col-lg-3">
-                        <div class="card border-0 shadow-sm p-3 p-md-4 d-flex flex-row align-items-center justify-content-between stat-card">
+            <!-- Stat Cards -->
+            <div class="row g-3 mb-4">
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm stat-card">
+                        <div class="card-body d-flex align-items-center justify-content-between p-4">
                             <div>
-                                <small class="text-muted">Total Revenue</small>
-                                <h5 class="fw-bold my-1">₱{{ total_revenue|floatformat:2 }}</h5>
-                                <small class="text-success d-flex align-items-center gap-1">
-                                    <i class="bi bi-arrow-up"></i>
-                                    <span class="d-none d-sm-inline">₱{{ revenue_this_week|floatformat:2 }} this week</span>
-                                    <span class="d-sm-none">This week</span>
+                                <p class="text-muted small mb-1">Total Revenue</p>
+                                <h4 class="fw-bold mb-1">₱{{ total_revenue|floatformat:2 }}</h4>
+                                <small class="text-success">
+                                    <i class="bi bi-arrow-up"></i> ₱{{ revenue_this_week|floatformat:2 }} this week
                                 </small>
                             </div>
-                            <div class="rounded-circle d-flex justify-content-center align-items-center stat-icon" style="background-color:rgba(13,110,253,0.1); color:#0d6efd;">
-                                <i class="bi bi-currency-dollar"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-lg-3">
-                        <div class="card border-0 shadow-sm p-3 p-md-4 d-flex flex-row align-items-center justify-content-between stat-card">
-                            <div>
-                                <small class="text-muted">Total Sales</small>
-                                <h5 class="fw-bold my-1">{{ total_sales }}</h5>
-                                <small class="text-success">{{ sales_this_week }} this week</small>
-                            </div>
-                            <div class="rounded-circle d-flex justify-content-center align-items-center stat-icon" style="background-color:rgba(25,135,84,0.1); color:#198754;">
-                                <i class="bi bi-cart"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-lg-3">
-                        <div class="card border-0 shadow-sm p-3 p-md-4 d-flex flex-row align-items-center justify-content-between stat-card">
-                            <div>
-                                <small class="text-muted">Products</small>
-                                <h5 class="fw-bold my-1">{{ total_products }}</h5>
-                                <small style="color:#6f42c1;">Active in inventory</small>
-                            </div>
-                            <div class="rounded-circle d-flex justify-content-center align-items-center stat-icon" style="background-color:#f3f0ff; color:#6f42c1;">
-                                <i class="bi bi-box"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-lg-3">
-                        <div class="card border-0 shadow-sm p-3 p-md-4 d-flex flex-row align-items-center justify-content-between stat-card">
-                            <div>
-                                <small class="text-muted">Low Stock</small>
-                                <h5 class="fw-bold my-1 text-warning">{{ low_stock_items.count }}</h5>
-                                <small class="text-muted">Need restocking</small>
-                            </div>
-                            <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex justify-content-center align-items-center stat-icon">
-                                <i class="bi bi-exclamation-triangle"></i>
+                            <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center
+                                        bg-primary bg-opacity-10 text-primary flex-shrink-0">
+                                <i class="bi bi-currency-dollar fs-4"></i>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Charts Row -->
-                <div class="row g-3 mb-4">
-                    <div class="col-12 col-lg-8">
-                        <div class="card border-0 shadow-sm p-3 p-md-4 h-100">
-                            <div class="mb-3">
-                                <h6 class="fw-semibold mb-0">Revenue Overview</h6>
-                                <small class="text-muted">Daily revenue — last 7 days</small>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm stat-card">
+                        <div class="card-body d-flex align-items-center justify-content-between p-4">
+                            <div>
+                                <p class="text-muted small mb-1">Total Sales</p>
+                                <h4 class="fw-bold mb-1">{{ total_sales }}</h4>
+                                <small class="text-success">{{ sales_this_week }} sales this week</small>
                             </div>
-                            <div style="position:relative; height:220px;">
+                            <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center
+                                        bg-success bg-opacity-10 text-success flex-shrink-0">
+                                <i class="bi bi-cart fs-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm stat-card">
+                        <div class="card-body d-flex align-items-center justify-content-between p-4">
+                            <div>
+                                <p class="text-muted small mb-1">Products</p>
+                                <h4 class="fw-bold mb-1">{{ total_products }}</h4>
+                                <small class="text-purple">Active in inventory</small>
+                            </div>
+                            <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center
+                                        bg-purple-subtle text-purple flex-shrink-0">
+                                <i class="bi bi-box fs-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm stat-card">
+                        <div class="card-body d-flex align-items-center justify-content-between p-4">
+                            <div>
+                                <p class="text-muted small mb-1">Low Stock</p>
+                                <h4 class="fw-bold mb-1 text-warning">{{ low_stock_items.count }}</h4>
+                                <small class="text-muted">Items need restocking</small>
+                            </div>
+                            <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center
+                                        bg-warning bg-opacity-10 text-warning flex-shrink-0">
+                                <i class="bi bi-exclamation-triangle fs-4"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Charts -->
+            <div class="row g-3 mb-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4">
+                            <h6 class="fw-semibold mb-0">Revenue Overview</h6>
+                            <p class="text-muted small mb-3">Daily revenue — last 7 days</p>
+                            <div class="chart-container">
                                 <canvas id="revenueChart"></canvas>
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-lg-4">
-                        <div class="card border-0 shadow-sm p-3 p-md-4 h-100">
-                            <div class="mb-3">
-                                <h6 class="fw-semibold mb-0">Top Products</h6>
-                                <small class="text-muted">Units sold this week</small>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-center" style="height:180px;">
+                </div>
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4">
+                            <h6 class="fw-semibold mb-0">Top Products</h6>
+                            <p class="text-muted small mb-3">Units sold this week</p>
+                            <div class="chart-container chart-container--donut">
                                 <canvas id="topProductsChart"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Bottom Row -->
-                <div class="row g-3">
-                    <div class="col-12 col-lg-8">
-                        <div class="card border-0 shadow-sm p-3 p-md-4">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
+            <!-- Bottom Row -->
+            <div class="row g-3">
+
+                <!-- Recent Transactions -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
                                 <div>
                                     <h6 class="fw-semibold mb-0">Recent Transactions</h6>
-                                    <small class="text-muted">Latest sales activity</small>
+                                    <p class="text-muted small mb-0">Latest sales activity</p>
                                 </div>
                                 <a href="{% url 'dashboard:transactions' %}" class="btn btn-sm btn-outline-primary">View All</a>
                             </div>
-                            <div class="table-scroll table-responsive">
+                            <div class="table-scroll">
                                 <table class="table table-hover align-middle mb-0">
                                     <thead class="table-light">
                                         <tr>
                                             <th class="small fw-semibold">ID</th>
                                             <th class="small fw-semibold">Items</th>
                                             <th class="small fw-semibold">Amount</th>
-                                            <th class="small fw-semibold d-none d-md-table-cell">Date</th>
+                                            <th class="small fw-semibold">Date</th>
                                             <th class="small fw-semibold">Status</th>
                                         </tr>
                                     </thead>
@@ -233,9 +282,12 @@
                                             <td><span class="font-monospace small text-muted">#{{ tx.sales_id }}</span></td>
                                             <td><small>{{ tx.details.count }} item{{ tx.details.count|pluralize }}</small></td>
                                             <td><span class="fw-semibold">₱{{ tx.total_amount|floatformat:2 }}</span></td>
-                                            <td class="d-none d-md-table-cell"><small class="text-muted">{{ tx.sales_datetime|date:"M d, Y g:i A" }}</small></td>
+                                            <td><small class="text-muted">{{ tx.sales_datetime|date:"M d, Y g:i A" }}</small></td>
                                             <td>
-                                                <span class="badge rounded-pill {% if tx.status == 'completed' %}bg-success-subtle text-success{% elif tx.status == 'pending' %}bg-warning-subtle text-warning{% else %}bg-danger-subtle text-danger{% endif %}">
+                                                <span class="badge rounded-pill
+                                                    {% if tx.status == 'completed' %}bg-success-subtle text-success
+                                                    {% elif tx.status == 'pending' %}bg-warning-subtle text-warning
+                                                    {% else %}bg-danger-subtle text-danger{% endif %}">
                                                     {{ tx.status|capfirst }}
                                                 </span>
                                             </td>
@@ -250,24 +302,30 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="col-12 col-lg-4">
-                        <div class="card border-0 shadow-sm p-3 p-md-4 h-100">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
+                <!-- Low Stock Alerts -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
                                 <div>
                                     <h6 class="fw-semibold mb-0">Low Stock Alerts</h6>
-                                    <small class="text-muted">Items below threshold</small>
+                                    <p class="text-muted small mb-0">Items below threshold</p>
                                 </div>
                                 <a href="{% url 'dashboard:products' %}" class="btn btn-sm btn-outline-warning">Manage</a>
                             </div>
+
                             {% if low_stock_items %}
                                 {% for item in low_stock_items %}
                                 <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-exclamation-circle text-warning"></i>
-                                        <small class="fw-medium text-truncate" style="max-width:140px;">{{ item.product_name }}</small>
+                                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                        <i class="bi bi-exclamation-circle text-warning flex-shrink-0"></i>
+                                        <small class="fw-medium text-truncate">{{ item.product_name }}</small>
                                     </div>
-                                    <span class="badge bg-warning-subtle text-warning">{{ item.stock_quantity }} left</span>
+                                    <span class="badge bg-warning-subtle text-warning ms-2 flex-shrink-0">
+                                        {{ item.stock_quantity }} left
+                                    </span>
                                 </div>
                                 {% endfor %}
                             {% else %}
@@ -279,19 +337,23 @@
                     </div>
                 </div>
 
-                {{ chart_labels|json_script:"chart-labels" }}
-                {{ chart_values|json_script:"chart-values" }}
-                {{ top_labels|json_script:"top-labels" }}
-                {{ top_values|json_script:"top-values" }}
-
-                {% endblock %}
             </div>
-        </main>
-    </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/dashboard.js' %}"></script>
-    {% block extra_js %}{% endblock %}
+            <!-- Chart data from Django -->
+            {{ chart_labels|json_script:"chart-labels" }}
+            {{ chart_values|json_script:"chart-values" }}
+            {{ top_labels|json_script:"top-labels" }}
+            {{ top_values|json_script:"top-values" }}
+
+            {% endblock %}
+        </div>
+    </main>
+    <!-- ═══ /MAIN ═══ -->
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% block extra_js %}{% endblock %}
 </body>
-
 </html>
