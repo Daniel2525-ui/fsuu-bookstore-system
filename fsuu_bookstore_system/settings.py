@@ -1,12 +1,12 @@
+import os
 from pathlib import Path
 
+# ================= Base =================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-y=g)m21vk&xlc-p==2ydr=p7*eho=-uus5&d-^j38n&vlxa_8*'
-
-DEBUG = True
-
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-y=g)m21vk&xlc-p==2ydr=p7*eho=-uus5&d-^j38n&vlxa_8*')
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # ================= Installed Apps =================
 INSTALLED_APPS = [
@@ -22,7 +22,7 @@ INSTALLED_APPS = [
 # ================= Middleware =================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',   # serves static files in Gunicorn
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -58,19 +58,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-# MySQL backup config (uncomment if switching to MySQL)
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'USB',
-#         'USER': 'root',
-#         'PASSWORD': 'danisdev@95',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-# }
 
 # ================= Password Validation =================
 AUTH_PASSWORD_VALIDATORS = [
