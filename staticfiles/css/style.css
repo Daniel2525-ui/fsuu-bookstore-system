@@ -1,59 +1,334 @@
-.main-container {
+/* ═══════════════════════════════════════════════════════════
+   CUSTOM PROPERTIES
+═══════════════════════════════════════════════════════════ */
+
+:root {
+    --sidebar-w        : 264px;
+    --sidebar-w-sm     : 64px;
+    --sidebar-ease     : cubic-bezier(0.22, 1, 0.36, 1);
+    --sidebar-duration : 0.35s;
+    --accent           : #0d6efd;
+    --purple           : #6f42c1;
+    --purple-subtle-bg : rgba(111, 66, 193, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SIDEBAR — width animation
+═══════════════════════════════════════════════════════════ */
+
+.sidebar {
+    width: var(--sidebar-w);
     height: 100vh;
     overflow: hidden;
+    z-index: 100;
+    transition: width var(--sidebar-duration) var(--sidebar-ease);
 }
 
-aside {
-    position: sticky;
-    top: 0;
-    height: 100vh;
+.sidebar--collapsed {
+    width: var(--sidebar-w-sm);
+}
+
+/* Scroll only when expanded */
+.sidebar:not(.sidebar--collapsed) {
     overflow-y: auto;
 }
 
-main {
-    height: 100vh;
-    overflow-y: auto;
+/* Kill transitions on first render */
+.sidebar--no-transition,
+.sidebar--no-transition * {
+    transition: none !important;
 }
 
-.nav-link {
-    border-radius: 8px;
-    transition: background 0.15s ease, color 0.15s ease;
+/* ── Brand fade/scale ── */
+.sidebar__brand {
+    opacity: 1;
+    transform: scaleX(1);
+    transform-origin: left;
+    transition:
+        opacity   0.25s ease,
+        transform var(--sidebar-duration) var(--sidebar-ease);
 }
-.nav-link:hover, .nav-link.active {
-    background: rgba(13, 110, 253, 0.08);
-    color: #0d6efd !important;
-}
-.nav-link.active { font-weight: 600; }
 
-.stat-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,.09) !important;
+.sidebar--collapsed .sidebar__brand {
+    opacity: 0;
+    transform: scaleX(0);
+    pointer-events: none;
 }
+
+/* ── Section labels collapse ── */
+.sidebar__section-label {
+    max-height: 40px;
+    opacity: 1;
+    overflow: hidden;
+    transition:
+        opacity    0.25s ease,
+        max-height var(--sidebar-duration) var(--sidebar-ease),
+        padding    var(--sidebar-duration) var(--sidebar-ease);
+}
+
+.sidebar--collapsed .sidebar__section-label {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* ── Nav label text collapse ── */
+.nav-link__label {
+    max-width: 180px;
+    opacity: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    transition:
+        max-width var(--sidebar-duration) var(--sidebar-ease),
+        opacity   0.25s ease;
+}
+
+.sidebar--collapsed .nav-link__label {
+    max-width: 0;
+    opacity: 0;
+}
+
+/* ── Active link left border ── */
+.nav-link.active {
+    border-left: 3px solid var(--accent);
+    padding-left: 5px !important;
+}
+
+/* ── Nav link hover / active colors ── */
+.nav-link:hover,
+.nav-link.active {
+    background-color: rgba(13, 110, 253, 0.08);
+    color: var(--accent) !important;
+}
+
+/* ── CSS-only tooltip on collapsed icon links ── */
+.sidebar--collapsed .nav-link::after {
+    content: attr(data-label);
+    position: fixed;
+    left: 72px;
+    background: #2d3748;
+    color: #fff;
+    font-size: 0.73rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease 0.1s;
+}
+
+.sidebar--collapsed .nav-link:hover::after {
+    opacity: 1;
+}
+
+/* ── Footer collapse ── */
+.sidebar__footer {
+    max-height: 80px;
+    opacity: 1;
+    overflow: hidden;
+    padding: 14px 16px;
+    transition:
+        max-height var(--sidebar-duration) var(--sidebar-ease),
+        opacity    0.25s ease,
+        padding    var(--sidebar-duration) var(--sidebar-ease);
+}
+
+.sidebar--collapsed .sidebar__footer {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    pointer-events: none;
+}
+
+.sidebar__status-text { white-space: nowrap; }
+
+/* ═══════════════════════════════════════════════════════════
+   HAMBURGER BARS
+═══════════════════════════════════════════════════════════ */
+
+.hamburger-bar {
+    display: block;
+    width: 18px;
+    height: 1.5px;
+    background: #6c757d;
+    border-radius: 2px;
+}
+
+.sidebar__toggle:hover {
+    background-color: rgba(13, 110, 253, 0.07) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE SIDEBAR — slide-in overlay
+   FIX: removed pointer-events:none from base .sidebar on mobile.
+        Pointer blocking is now handled by the backdrop only.
+        sidebar--collapsed styles are overridden when mobile-open.
+═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 767.98px) {
+    .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        /* FIX: always full width on mobile — collapsed class must not shrink it */
+        width: var(--sidebar-w) !important;
+        transform: translateX(-110%);
+        z-index: 1050;
+        overflow-y: auto;
+        transition: transform 0.3s var(--sidebar-ease);
+        /* FIX: do NOT set pointer-events:none here — it blocks the topbar toggle
+                indirectly and prevents any future inside-sidebar interactions */
+    }
+
+    .sidebar.sidebar--mobile-open {
+        transform: translateX(0);
+    }
+
+    /* ── FIX: when open on mobile, undo all collapsed-state hiding ── */
+    .sidebar.sidebar--mobile-open .nav-link__label {
+        max-width: 180px !important;
+        opacity: 1 !important;
+    }
+
+    .sidebar.sidebar--mobile-open .sidebar__section-label {
+        max-height: 40px !important;
+        opacity: 1 !important;
+        padding-top: revert !important;
+        padding-bottom: revert !important;
+    }
+
+    .sidebar.sidebar--mobile-open .sidebar__brand {
+        opacity: 1 !important;
+        transform: scaleX(1) !important;
+        pointer-events: auto !important;
+    }
+
+    .sidebar.sidebar--mobile-open .sidebar__footer {
+        max-height: 80px !important;
+        opacity: 1 !important;
+        padding: 14px 16px !important;
+        pointer-events: auto !important;
+    }
+
+    /* ── FIX: suppress collapsed tooltips on mobile (they're for desktop only) ── */
+    .sidebar--collapsed .nav-link::after {
+        display: none !important;
+    }
+}
+
+/* Tablet: collapsed by default, expands on toggle */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .sidebar                          { width: var(--sidebar-w-sm); }
+    .sidebar:not(.sidebar--collapsed) { width: var(--sidebar-w); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BACKDROP
+═══════════════════════════════════════════════════════════ */
+
+.sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    display: none;
+    z-index: 1040;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+}
+
+.sidebar-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+@media (max-width: 767.98px) {
+    .sidebar-backdrop { display: block; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIVE DOT
+═══════════════════════════════════════════════════════════ */
 
 .live-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #198754;
-    display: inline-block;
-    animation: pulse 1.8s infinite;
-}
-@keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.4; transform: scale(0.75); }
+    animation: livePulse 2s infinite;
 }
 
-.skeleton {
-    background: linear-gradient(90deg, #e9ecef 25%, #f8f9fa 50%, #e9ecef 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s infinite;
-    border-radius: 4px;
-}
-@keyframes shimmer {
-    0%   { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+@keyframes livePulse {
+    0%, 100% { transform: scale(1);    opacity: 1;   }
+    50%       { transform: scale(0.65); opacity: 0.4; }
 }
 
-.table-scroll { max-height: 300px; overflow-y: auto; }
-.table-scroll::-webkit-scrollbar { width: 4px; }
+/* ═══════════════════════════════════════════════════════════
+   STAT CARDS — hover lift
+═══════════════════════════════════════════════════════════ */
+
+.stat-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.09) !important;
+}
+
+.stat-icon {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PURPLE — not a Bootstrap 5.3 theme color
+═══════════════════════════════════════════════════════════ */
+
+.text-purple      { color: var(--purple) !important; }
+.bg-purple-subtle { background-color: var(--purple-subtle-bg) !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   CHARTS — fixed heights
+═══════════════════════════════════════════════════════════ */
+
+.chart-container {
+    position: relative;
+    height: 230px;
+}
+
+.chart-container--donut {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 767.98px) {
+    .chart-container,
+    .chart-container--donut { height: 180px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TABLE SCROLL — custom scrollbar
+═══════════════════════════════════════════════════════════ */
+
+.table-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.table-scroll::-webkit-scrollbar       { width: 4px; }
 .table-scroll::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 4px; }
+
+/* ═══════════════════════════════════════════════════════════
+   POS — sticky cart panel on large screens
+═══════════════════════════════════════════════════════════ */
+
+@media (min-width: 992px) {
+    .pos-cart-col {
+        position: sticky;
+        top: 24px;
+        max-height: calc(100vh - 48px);
+        overflow-y: auto;
+    }
+}
