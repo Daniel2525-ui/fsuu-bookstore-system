@@ -4,7 +4,7 @@
      1. Sidebar
      2. Nav active state
      3. Dashboard charts
-     4. Products page
+     4. Products page  (table + mobile card list)
      5. Transactions page
      6. Reports page
      7. Point of Sale page
@@ -178,6 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. PRODUCTS PAGE
     // ══════════════════════════════════════════════════════
 
+    // Edit modal: populate fields from trigger button's data attributes
     const editModal = document.getElementById('editProductModal');
     if (editModal) {
         editModal.addEventListener('show.bs.modal', e => {
@@ -193,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Delete modal: set product name and update form action
     const deleteModal = document.getElementById('deleteProductModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', e => {
@@ -203,12 +205,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const productRows = document.querySelectorAll('#productsTable tbody tr[data-status]');
-    if (productRows.length) {
-        const searchInput    = document.getElementById('searchInput');
-        const categoryFilter = document.getElementById('categoryFilter');
-        const stockFilter    = document.getElementById('stockFilter');
-        const statusFilter   = document.getElementById('statusFilter');
+    // Shared filter logic — runs on both the desktop table rows AND mobile cards
+    const searchInput    = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const stockFilter    = document.getElementById('stockFilter');
+    const statusFilter   = document.getElementById('statusFilter');
+
+    // Desktop table rows
+    const productRows  = document.querySelectorAll('#productsTable tbody tr[data-status]');
+    // Mobile card items
+    const mobileCards  = document.querySelectorAll('.product-mobile-card');
+
+    if (productRows.length || mobileCards.length) {
 
         function filterProducts() {
             const search   = searchInput?.value.toLowerCase()  ?? '';
@@ -216,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const stock    = stockFilter?.value                ?? '';
             const status   = statusFilter?.value               ?? '';
 
+            // Filter desktop table rows
             productRows.forEach(row => {
                 const name = row.querySelector('td')?.textContent.toLowerCase() ?? '';
                 const show =
@@ -225,9 +234,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     (!status   || row.dataset.status   === status);
                 row.style.display = show ? '' : 'none';
             });
+
+            // Filter mobile cards — same criteria, name from first .fw-semibold
+            mobileCards.forEach(card => {
+                const name = card.querySelector('.fw-semibold')?.textContent.toLowerCase() ?? '';
+                const show =
+                    name.includes(search)                             &&
+                    (!category || card.dataset.category === category) &&
+                    (!stock    || card.dataset.stock    === stock)    &&
+                    (!status   || card.dataset.status   === status);
+                card.style.display = show ? '' : 'none';
+            });
         }
 
-        searchInput?.addEventListener('input',  filterProducts);
+        searchInput?.addEventListener('input',     filterProducts);
         categoryFilter?.addEventListener('change', filterProducts);
         stockFilter?.addEventListener('change',    filterProducts);
         statusFilter?.addEventListener('change',   filterProducts);
@@ -257,8 +277,8 @@ document.addEventListener('DOMContentLoaded', () => {
             txRows.forEach(row => {
                 const rowDate = row.dataset.date;
                 const show =
-                    row.dataset.id.includes(search)                        &&
-                    (!status || row.dataset.status === status)             &&
+                    row.dataset.id.includes(search)            &&
+                    (!status || row.dataset.status === status) &&
                     (!date
                         || (date === 'today' && rowDate === todayStr)
                         || (date === 'week'  && rowDate >= weekAgoStr));
@@ -304,8 +324,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     tooltip: { callbacks: { label: c => ` ₱${Number(c.parsed.y).toLocaleString()}` } }
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 10 } },
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { font: { size: 11 }, callback: v => `₱${Number(v).toLocaleString()}` } }
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 10 }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,.05)' },
+                        ticks: { font: { size: 11 }, callback: v => `₱${Number(v).toLocaleString()}` }
+                    }
                 }
             }
         });
@@ -340,13 +367,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 scales: {
                     x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } },
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { font: { size: 11 }, callback: v => `₱${Number(v).toLocaleString()}` } }
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,.05)' },
+                        ticks: { font: { size: 11 }, callback: v => `₱${Number(v).toLocaleString()}` }
+                    }
                 }
             }
         });
     }
 
-    makeBarChart('dailyRevenueChart',   'daily-labels',   'daily-values');
+    makeBarChart('dailyRevenueChart',    'daily-labels',   'daily-values');
     makeLineChart('monthlyRevenueChart', 'monthly-labels', 'monthly-values');
 
     const categoryCanvas = document.getElementById('categoryChart');
@@ -369,7 +400,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 cutout: '65%',
                 plugins: {
                     legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } },
-                    tooltip: { callbacks: { label: c => ` ${c.label}: ₱${Number(c.parsed).toLocaleString()}` } }
+                    tooltip: {
+                        callbacks: { label: c => ` ${c.label}: ₱${Number(c.parsed).toLocaleString()}` }
+                    }
                 }
             }
         });
@@ -383,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cartItemsEl = document.getElementById('cart-items');
     if (!cartItemsEl) return;
 
-    const CSRF_TOKEN   = document.querySelector('meta[name="csrf-token"]')?.content  ?? '';
+    const CSRF_TOKEN   = document.querySelector('meta[name="csrf-token"]')?.content   ?? '';
     const CHECKOUT_URL = document.querySelector('meta[name="checkout-url"]')?.content ?? '';
 
     let cart = {};
@@ -402,7 +435,12 @@ document.addEventListener('DOMContentLoaded', () => {
             this.style.boxShadow   = '';
         });
         card.addEventListener('click', function () {
-            addToCart(this.dataset.id, this.dataset.name, parseFloat(this.dataset.price), parseInt(this.dataset.stock, 10));
+            addToCart(
+                this.dataset.id,
+                this.dataset.name,
+                parseFloat(this.dataset.price),
+                parseInt(this.dataset.stock, 10)
+            );
         });
     });
 
@@ -464,10 +502,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         </small>
                     </div>
                     <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${id}, -1)"><i class="bi bi-dash"></i></button>
-                        <span class="small fw-semibold" style="min-width:20px; text-align:center;">${item.qty}</span>
-                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${id},  1)"><i class="bi bi-plus"></i></button>
-                        <button class="btn btn-sm btn-outline-danger   py-0 px-2" onclick="removeFromCart(${id})"><i class="bi bi-x"></i></button>
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                onclick="updateQty(${id}, -1)">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <span class="small fw-semibold"
+                              style="min-width:20px; text-align:center;">${item.qty}</span>
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                onclick="updateQty(${id}, 1)">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger py-0 px-2"
+                                onclick="removeFromCart(${id})">
+                            <i class="bi bi-x"></i>
+                        </button>
                     </div>
                 </div>`;
         });
@@ -485,7 +533,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function computeChange() {
-        const total    = parseFloat(document.getElementById('total-display').textContent.replace('₱', '')) || 0;
+        const total    = parseFloat(
+            document.getElementById('total-display').textContent.replace('₱', '')
+        ) || 0;
         const tendered = parseFloat(document.getElementById('cash-tendered').value) || 0;
         const change   = tendered - total;
         const el       = document.getElementById('change-display');
@@ -496,7 +546,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cash-tendered')?.addEventListener('input', computeChange);
 
     window.processCheckout = () => {
-        const total    = parseFloat(document.getElementById('total-display').textContent.replace('₱', '')) || 0;
+        const total    = parseFloat(
+            document.getElementById('total-display').textContent.replace('₱', '')
+        ) || 0;
         const tendered = parseFloat(document.getElementById('cash-tendered').value) || 0;
 
         if (tendered < total) {
@@ -513,21 +565,28 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(res => res.json())
         .then(data => {
-            if (data.success) { window.open(data.receipt_url, '_blank'); window.clearCart(); }
-            else              { alert(data.error || 'Checkout failed. Please try again.'); }
+            if (data.success) {
+                window.open(data.receipt_url, '_blank');
+                window.clearCart();
+            } else {
+                alert(data.error || 'Checkout failed. Please try again.');
+            }
         })
         .catch(() => alert('An error occurred. Please try again.'));
     };
 
-    // POS product filter
+    // POS product search + category filter
     const productSearch  = document.getElementById('product-search');
     const categorySelect = document.getElementById('category-filter');
 
     function filterPOSProducts() {
-        const query    = productSearch?.value.toLowerCase()  ?? '';
-        const category = categorySelect?.value               ?? '';
+        const query    = productSearch?.value.toLowerCase() ?? '';
+        const category = categorySelect?.value              ?? '';
         document.querySelectorAll('.product-item').forEach(item => {
-            item.style.display = (item.dataset.name.includes(query) && (!category || item.dataset.category === category)) ? '' : 'none';
+            item.style.display =
+                (item.dataset.name.includes(query) &&
+                (!category || item.dataset.category === category))
+                    ? '' : 'none';
         });
     }
 
