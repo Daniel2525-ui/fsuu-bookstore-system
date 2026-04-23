@@ -4,7 +4,7 @@
      1. Sidebar
      2. Nav active state
      3. Dashboard charts
-     4. Products page  (table + mobile card list)
+     4. Products page
      5. Transactions page
      6. Reports page
      7. Point of Sale page
@@ -28,7 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isMobile = () => window.innerWidth <= MOBILE_BP;
 
-    /** Restore saved desktop preference without a visible flash. */
+    /**
+     * Restore saved desktop collapsed preference without a flash.
+     * Never called on mobile — mobile uses slide-in overlay instead.
+     */
     function restoreDesktopState() {
         const saved           = localStorage.getItem(STORAGE_KEY);
         const defaultCollapse = window.innerWidth <= 1024;
@@ -47,38 +50,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!isMobile()) restoreDesktopState();
 
-    // Desktop toggle
+    // ── Desktop toggle ──────────────────────────────────
     toggleDesktop?.addEventListener('click', () => {
         if (isMobile()) return;
         const collapsed = sidebar.classList.toggle('sidebar--collapsed');
         localStorage.setItem(STORAGE_KEY, collapsed);
     });
 
-    // Mobile: open
-    toggleMobile?.addEventListener('click', () => {
+    // ── Mobile: open ────────────────────────────────────
+    toggleMobile?.addEventListener('click', openMobile);
+
+    function openMobile() {
+        // FIX: remove sidebar--collapsed so nav labels/sections
+        //      are not hidden by the collapsed-state CSS rules.
+        sidebar.classList.remove('sidebar--collapsed');
         sidebar.classList.add('sidebar--mobile-open');
         backdrop.classList.add('show');
         document.body.style.overflow = 'hidden';
-    });
+    }
 
-    // Mobile: close
+    // ── Mobile: close ───────────────────────────────────
     function closeMobile() {
         sidebar.classList.remove('sidebar--mobile-open');
+        // FIX: restore sidebar--collapsed when closing so desktop
+        //      styles are correct if the user rotates back to a
+        //      wider viewport while the sidebar was open.
+        sidebar.classList.add('sidebar--collapsed');
         backdrop.classList.remove('show');
         document.body.style.overflow = '';
     }
 
     backdrop?.addEventListener('click', closeMobile);
 
+    // Close on nav-link tap on mobile
     sidebar.querySelectorAll('.nav-link').forEach(link =>
         link.addEventListener('click', () => { if (isMobile()) closeMobile(); })
     );
 
+    // ── Resize handler ──────────────────────────────────
     window.addEventListener('resize', () => {
         if (isMobile()) {
-            sidebar.classList.remove('sidebar--collapsed');
-        } else {
+            // Switching to mobile: ensure sidebar is hidden (not collapsed icon-only)
+            // and close any open mobile drawer cleanly.
             closeMobile();
+        } else {
+            // Switching to desktop: clean up any leftover mobile-open state
+            // and restore the user's desktop preference.
+            sidebar.classList.remove('sidebar--mobile-open');
+            backdrop.classList.remove('show');
+            document.body.style.overflow = '';
             restoreDesktopState();
         }
     });
@@ -205,16 +225,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Shared filter logic — runs on both the desktop table rows AND mobile cards
+    // Shared filter — desktop table rows + mobile cards
     const searchInput    = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
     const stockFilter    = document.getElementById('stockFilter');
     const statusFilter   = document.getElementById('statusFilter');
 
-    // Desktop table rows
-    const productRows  = document.querySelectorAll('#productsTable tbody tr[data-status]');
-    // Mobile card items
-    const mobileCards  = document.querySelectorAll('.product-mobile-card');
+    const productRows = document.querySelectorAll('#productsTable tbody tr[data-status]');
+    const mobileCards = document.querySelectorAll('.product-mobile-card');
 
     if (productRows.length || mobileCards.length) {
 
@@ -224,7 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const stock    = stockFilter?.value                ?? '';
             const status   = statusFilter?.value               ?? '';
 
-            // Filter desktop table rows
             productRows.forEach(row => {
                 const name = row.querySelector('td')?.textContent.toLowerCase() ?? '';
                 const show =
@@ -235,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.style.display = show ? '' : 'none';
             });
 
-            // Filter mobile cards — same criteria, name from first .fw-semibold
             mobileCards.forEach(card => {
                 const name = card.querySelector('.fw-semibold')?.textContent.toLowerCase() ?? '';
                 const show =
@@ -259,11 +275,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // ══════════════════════════════════════════════════════
 
     const txTable = document.getElementById('txTable');
-    if (txTable) {
+    const txCards = document.querySelectorAll('.tx-mobile-card');
+
+    if (txTable || txCards.length) {
         const txSearch   = document.getElementById('txSearch');
         const txStatus   = document.getElementById('txStatus');
         const txDate     = document.getElementById('txDate');
-        const txRows     = txTable.querySelectorAll('tbody tr[data-id]');
+        const txRows     = txTable?.querySelectorAll('tbody tr[data-id]') ?? [];
         const txEmpty    = document.getElementById('txEmptyFilter');
         const todayStr   = new Date().toISOString().slice(0, 10);
         const weekAgoStr = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
@@ -283,6 +301,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         || (date === 'today' && rowDate === todayStr)
                         || (date === 'week'  && rowDate >= weekAgoStr));
                 row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            txCards.forEach(card => {
+                const rowDate = card.dataset.date;
+                const show =
+                    card.dataset.id.includes(search)            &&
+                    (!status || card.dataset.status === status) &&
+                    (!date
+                        || (date === 'today' && rowDate === todayStr)
+                        || (date === 'week'  && rowDate >= weekAgoStr));
+                card.style.display = show ? '' : 'none';
                 if (show) visible++;
             });
 
@@ -590,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    productSearch?.addEventListener('input',  filterPOSProducts);
+    productSearch?.addEventListener('input',   filterPOSProducts);
     categorySelect?.addEventListener('change', filterPOSProducts);
 
 }); // end DOMContentLoaded

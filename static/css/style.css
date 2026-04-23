@@ -1,7 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
    CUSTOM PROPERTIES
-   Only values used for transitions / animations / colors
-   that Bootstrap doesn't provide out of the box.
 ═══════════════════════════════════════════════════════════ */
 
 :root {
@@ -15,7 +13,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   SIDEBAR — width animation (Bootstrap has no width transition)
+   SIDEBAR — width animation
 ═══════════════════════════════════════════════════════════ */
 
 .sidebar {
@@ -41,7 +39,7 @@
     transition: none !important;
 }
 
-/* ── Brand fade/scale (no Bootstrap utility for scaleX) ── */
+/* ── Brand fade/scale ── */
 .sidebar__brand {
     opacity: 1;
     transform: scaleX(1);
@@ -165,23 +163,58 @@
 
 /* ═══════════════════════════════════════════════════════════
    MOBILE SIDEBAR — slide-in overlay
+   FIX: removed pointer-events:none from base .sidebar on mobile.
+        Pointer blocking is now handled by the backdrop only.
+        sidebar--collapsed styles are overridden when mobile-open.
 ═══════════════════════════════════════════════════════════ */
 
 @media (max-width: 767.98px) {
     .sidebar {
         position: fixed;
         inset: 0 auto 0 0;
+        /* FIX: always full width on mobile — collapsed class must not shrink it */
         width: var(--sidebar-w) !important;
         transform: translateX(-110%);
         z-index: 1050;
         overflow-y: auto;
         transition: transform 0.3s var(--sidebar-ease);
-        pointer-events: none;
+        /* FIX: do NOT set pointer-events:none here — it blocks the topbar toggle
+                indirectly and prevents any future inside-sidebar interactions */
     }
 
     .sidebar.sidebar--mobile-open {
         transform: translateX(0);
-        pointer-events: auto;
+    }
+
+    /* ── FIX: when open on mobile, undo all collapsed-state hiding ── */
+    .sidebar.sidebar--mobile-open .nav-link__label {
+        max-width: 180px !important;
+        opacity: 1 !important;
+    }
+
+    .sidebar.sidebar--mobile-open .sidebar__section-label {
+        max-height: 40px !important;
+        opacity: 1 !important;
+        padding-top: revert !important;
+        padding-bottom: revert !important;
+    }
+
+    .sidebar.sidebar--mobile-open .sidebar__brand {
+        opacity: 1 !important;
+        transform: scaleX(1) !important;
+        pointer-events: auto !important;
+    }
+
+    .sidebar.sidebar--mobile-open .sidebar__footer {
+        max-height: 80px !important;
+        opacity: 1 !important;
+        padding: 14px 16px !important;
+        pointer-events: auto !important;
+    }
+
+    /* ── FIX: suppress collapsed tooltips on mobile (they're for desktop only) ── */
+    .sidebar--collapsed .nav-link::after {
+        display: none !important;
     }
 }
 
@@ -241,7 +274,6 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.09) !important;
 }
 
-/* Fixed icon dimensions */
 .stat-icon {
     width: 52px;
     height: 52px;
@@ -290,14 +322,12 @@
 
 /* ═══════════════════════════════════════════════════════════
    POS — sticky cart panel on large screens
-   Bootstrap's sticky-top only sticks inside a scrollable
-   ancestor; the cart column needs its own scroll context.
 ═══════════════════════════════════════════════════════════ */
 
 @media (min-width: 992px) {
     .pos-cart-col {
         position: sticky;
-        top: 24px;         /* matches the page-wrapper padding */
+        top: 24px;
         max-height: calc(100vh - 48px);
         overflow-y: auto;
     }

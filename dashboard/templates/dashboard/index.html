@@ -24,12 +24,13 @@
                   d-flex flex-column flex-shrink-0 bg-white border-end">
 
         <!-- Header -->
-        <div class="sidebar__header d-flex align-items-center gap-4 px-3 border-bottom flex-shrink-0"
+        <div class="sidebar__header d-flex align-items-center gap-3 px-3 border-bottom flex-shrink-0"
              style="min-height:62px;">
             <button id="sidebarToggleDesktop"
                     class="sidebar__toggle btn d-flex flex-column justify-content-center align-items-center gap-1
                            border-0 rounded-2 p-0 flex-shrink-0"
-                    aria-label="Toggle sidebar">
+                    aria-label="Toggle sidebar"
+                    style="width:36px; height:36px;">
                 <span class="hamburger-bar"></span>
                 <span class="hamburger-bar"></span>
                 <span class="hamburger-bar"></span>
@@ -44,11 +45,11 @@
         </div>
 
         <!-- Nav -->
-        <nav class="sidebar__nav flex-grow-1 py-2 overflow-hidden mt-3">
+        <nav class="sidebar__nav flex-grow-1 py-2 overflow-hidden">
 
             <span class="sidebar__section-label d-block text-uppercase text-secondary px-3 pt-2 pb-1 text-nowrap overflow-hidden"
                   style="font-size:0.67rem; letter-spacing:0.06em;">Overview</span>
-            <ul class="nav flex-column mb-1">
+            <ul class="nav flex-column">
                 <li class="nav-item px-2">
                     <a href="{% url 'dashboard:home' %}"
                        class="nav-link d-flex align-items-center gap-2 rounded-2 py-2 px-2 text-secondary text-nowrap"
@@ -61,7 +62,7 @@
 
             <span class="sidebar__section-label d-block text-uppercase text-secondary px-3 pt-3 pb-1 text-nowrap overflow-hidden"
                   style="font-size:0.67rem; letter-spacing:0.06em;">Catalog</span>
-            <ul class="nav flex-column mb-1">
+            <ul class="nav flex-column">
                 <li class="nav-item px-2">
                     <a href="{% url 'dashboard:products' %}"
                        class="nav-link d-flex align-items-center gap-2 rounded-2 py-2 px-2 text-secondary text-nowrap"
@@ -74,7 +75,7 @@
 
             <span class="sidebar__section-label d-block text-uppercase text-secondary px-3 pt-3 pb-1 text-nowrap overflow-hidden"
                   style="font-size:0.67rem; letter-spacing:0.06em;">Sales</span>
-            <ul class="nav flex-column mb-2">
+            <ul class="nav flex-column">
                 <li class="nav-item px-2 mb-1">
                     <a href="{% url 'dashboard:pos' %}"
                        class="nav-link d-flex align-items-center gap-2 rounded-2 py-2 px-2 text-secondary text-nowrap"
@@ -110,7 +111,7 @@
 
         <!-- Footer -->
         <div class="sidebar__footer d-flex flex-column gap-1 px-3 border-top overflow-hidden">
-            <span class="text-muted" style="font-size:0.8rem;">System Status</span>
+            <span class="text-muted" style="font-size:0.7rem;">System Status</span>
             <span class="d-flex align-items-center gap-2 text-success small">
                 <span class="live-dot rounded-circle bg-success flex-shrink-0"
                       style="width:8px; height:8px;"></span>
@@ -124,7 +125,7 @@
     <!-- ═══ MAIN ═══ -->
     <main class="flex-grow-1 bg-light overflow-y-auto overflow-x-hidden" style="min-width:0; height:100vh;">
 
-        <!-- Mobile topbar (hidden on ≥ md) -->
+        <!-- Mobile topbar (hidden on md+) -->
         <div id="mobileTopbar"
              class="d-md-none d-flex align-items-center gap-3 px-3 py-2 bg-white border-bottom sticky-top"
              style="z-index:50;">
@@ -132,92 +133,96 @@
                     class="btn d-flex flex-column justify-content-center align-items-center gap-1
                            border-0 rounded-2 p-0 flex-shrink-0"
                     aria-label="Open menu"
-                    style="width:36px; height:36px;">   
+                    style="width:36px; height:36px;">
                 <span class="hamburger-bar"></span>
                 <span class="hamburger-bar"></span>
                 <span class="hamburger-bar"></span>
             </button>
-            <span class="fw-bold fs-6"><span class="text-primary">FSUU</span> Bookstore</span>
+            <span class="fw-bold fs-5"><span class="text-primary">FSUU</span> Bookstore</span>
         </div>
-
+        
         <div class="container-xl py-4 px-3 px-lg-4">
             {% block content %}
 
             <!-- Page Header -->
-            <div class="d-flex align-items-start justify-content-between mb-2">
+            <div class="d-flex align-items-start justify-content-between mb-2 gap-2">
                 <div>
                     <h4 class="fw-semibold fs-3 mb-1">Dashboard</h4>
-                    <p class="text-muted small mb-0 fs-6">Welcome back! Here's what's happening today.</p>
+                    <p class="text-muted small mb-0">Welcome back! Here's what's happening today.</p>
                 </div>
-                <small class="text-muted mt-1">{{ today }}</small>
+                <small class="text-muted mt-1 text-nowrap">{{ today }}</small>
             </div>
 
             <hr class="mb-4">
 
-            <!-- Stat Cards -->
+            <!-- Stat Cards
+                 xl: 4 across | md: 2 across | mobile: 2 across
+            -->
             <div class="row g-3 mb-4">
 
-                <div class="col-xl-3 col-md-6 col-6">
-                    <div class="card border-0 shadow-sm stat-card">
-                        <div class="card-body d-flex align-items-center justify-content-between p-4">
-                            <div>
+                <div class="col-6 col-md-6 col-xl-3">
+                    <div class="card border-0 shadow-sm stat-card h-100">
+                        <div class="card-body d-flex align-items-center justify-content-between p-3 p-md-4">
+                            <div class="overflow-hidden">
                                 <p class="text-muted small mb-1">Total Revenue</p>
-                                <h4 class="fw-bold mb-1">₱{{ total_revenue|floatformat:2 }}</h4>
+                                <h5 class="fw-bold mb-1">₱{{ total_revenue|floatformat:2 }}</h5>
                                 <small class="text-success">
-                                    <i class="bi bi-arrow-up"></i> ₱{{ revenue_this_week|floatformat:2 }} this week
+                                    <i class="bi bi-arrow-up"></i>
+                                    <span class="d-none d-sm-inline">₱{{ revenue_this_week|floatformat:2 }} this week</span>
+                                    <span class="d-sm-none">↑ this week</span>
                                 </small>
                             </div>
                             <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center
-                                        bg-primary bg-opacity-10 text-primary flex-shrink-0">
-                                <i class="bi bi-currency-dollar fs-4"></i>
+                                        bg-primary bg-opacity-10 text-primary flex-shrink-0 ms-2">
+                                <i class="bi bi-currency-dollar fs-5"></i>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-md-6 col-6">
-                    <div class="card border-0 shadow-sm stat-card">
-                        <div class="card-body d-flex align-items-center justify-content-between p-4">
-                            <div>
+                <div class="col-6 col-md-6 col-xl-3">
+                    <div class="card border-0 shadow-sm stat-card h-100">
+                        <div class="card-body d-flex align-items-center justify-content-between p-3 p-md-4">
+                            <div class="overflow-hidden">
                                 <p class="text-muted small mb-1">Total Sales</p>
-                                <h4 class="fw-bold mb-1">{{ total_sales }}</h4>
-                                <small class="text-success">{{ sales_this_week }} sales this week</small>
+                                <h5 class="fw-bold mb-1">{{ total_sales }}</h5>
+                                <small class="text-success">{{ sales_this_week }} this week</small>
                             </div>
                             <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center
-                                        bg-success bg-opacity-10 text-success flex-shrink-0">
-                                <i class="bi bi-cart fs-4"></i>
+                                        bg-success bg-opacity-10 text-success flex-shrink-0 ms-2">
+                                <i class="bi bi-cart fs-5"></i>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-md-6 col-6">
-                    <div class="card border-0 shadow-sm stat-card">
-                        <div class="card-body d-flex align-items-center justify-content-between p-4">
-                            <div>
+                <div class="col-6 col-md-6 col-xl-3">
+                    <div class="card border-0 shadow-sm stat-card h-100">
+                        <div class="card-body d-flex align-items-center justify-content-between p-3 p-md-4">
+                            <div class="overflow-hidden">
                                 <p class="text-muted small mb-1">Products</p>
-                                <h4 class="fw-bold mb-1">{{ total_products }}</h4>
-                                <small class="text-purple">Active in inventory</small>
+                                <h5 class="fw-bold mb-1">{{ total_products }}</h5>
+                                <small class="text-purple">Active inventory</small>
                             </div>
                             <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center
-                                        bg-purple-subtle text-purple flex-shrink-0">
-                                <i class="bi bi-box fs-4"></i>
+                                        bg-purple-subtle text-purple flex-shrink-0 ms-2">
+                                <i class="bi bi-box fs-5"></i>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-md-6 col-6">
-                    <div class="card border-0 shadow-sm stat-card">
-                        <div class="card-body d-flex align-items-center justify-content-between p-4">
-                            <div>
+                <div class="col-6 col-md-6 col-xl-3">
+                    <div class="card border-0 shadow-sm stat-card h-100">
+                        <div class="card-body d-flex align-items-center justify-content-between p-3 p-md-4">
+                            <div class="overflow-hidden">
                                 <p class="text-muted small mb-1">Low Stock</p>
-                                <h4 class="fw-bold mb-1 text-warning">{{ low_stock_items.count }}</h4>
-                                <small class="text-muted">Items need restocking</small>
+                                <h5 class="fw-bold mb-1 text-warning">{{ low_stock_items.count }}</h5>
+                                <small class="text-muted">Need restocking</small>
                             </div>
                             <div class="stat-icon rounded-circle d-flex align-items-center justify-content-center
-                                        bg-warning bg-opacity-10 text-warning flex-shrink-0">
-                                <i class="bi bi-exclamation-triangle fs-4"></i>
+                                        bg-warning bg-opacity-10 text-warning flex-shrink-0 ms-2">
+                                <i class="bi bi-exclamation-triangle fs-5"></i>
                             </div>
                         </div>
                     </div>
@@ -227,9 +232,9 @@
 
             <!-- Charts -->
             <div class="row g-3 mb-4">
-                <div class="col-lg-8">
+                <div class="col-12 col-lg-8">
                     <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body p-4">
+                        <div class="card-body p-3 p-md-4">
                             <h6 class="fw-semibold mb-0">Revenue Overview</h6>
                             <p class="text-muted small mb-3">Daily revenue — last 7 days</p>
                             <div class="chart-container">
@@ -238,9 +243,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4">
+                <div class="col-12 col-lg-4">
                     <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body p-4">
+                        <div class="card-body p-3 p-md-4">
                             <h6 class="fw-semibold mb-0">Top Products</h6>
                             <p class="text-muted small mb-3">Units sold this week</p>
                             <div class="chart-container chart-container--donut">
@@ -255,17 +260,20 @@
             <div class="row g-3">
 
                 <!-- Recent Transactions -->
-                <div class="col-lg-8">
+                <div class="col-12 col-lg-8">
                     <div class="card border-0 shadow-sm">
-                        <div class="card-body p-4">
+                        <div class="card-body p-3 p-md-4">
                             <div class="d-flex align-items-start justify-content-between mb-3">
                                 <div>
                                     <h6 class="fw-semibold mb-0">Recent Transactions</h6>
                                     <p class="text-muted small mb-0">Latest sales activity</p>
                                 </div>
-                                <a href="{% url 'dashboard:transactions' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                                <a href="{% url 'dashboard:transactions' %}"
+                                   class="btn btn-sm btn-outline-primary flex-shrink-0">View All</a>
                             </div>
-                            <div class="table-scroll">
+
+                            <!-- Table — sm and up -->
+                            <div class="table-scroll d-none d-sm-block">
                                 <table class="table table-hover align-middle mb-0">
                                     <thead class="table-light">
                                         <tr>
@@ -294,26 +302,53 @@
                                         </tr>
                                         {% empty %}
                                         <tr>
-                                            <td colspan="5" class="text-center text-muted py-4">No transactions yet.</td>
+                                            <td colspan="5" class="text-center text-muted py-4">
+                                                No transactions yet.
+                                            </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
+
+                            <!-- Mobile transaction list — xs only -->
+                            <div class="d-sm-none">
+                                {% for tx in recent_transactions %}
+                                <div class="d-flex align-items-center justify-content-between py-2 border-bottom gap-2">
+                                    <div>
+                                        <span class="font-monospace small text-muted d-block">#{{ tx.sales_id }}</span>
+                                        <small class="text-muted">{{ tx.sales_datetime|date:"M d · g:i A" }}</small>
+                                    </div>
+                                    <div class="d-flex flex-column align-items-end gap-1">
+                                        <span class="fw-semibold small">₱{{ tx.total_amount|floatformat:2 }}</span>
+                                        <span class="badge rounded-pill
+                                            {% if tx.status == 'completed' %}bg-success-subtle text-success
+                                            {% elif tx.status == 'pending' %}bg-warning-subtle text-warning
+                                            {% else %}bg-danger-subtle text-danger{% endif %}">
+                                            {{ tx.status|capfirst }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-center text-muted small py-3 mb-0">No transactions yet.</p>
+                                {% endfor %}
+                            </div>
+
                         </div>
                     </div>
                 </div>
 
                 <!-- Low Stock Alerts -->
-                <div class="col-lg-4">
+                <div class="col-12 col-lg-4">
                     <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body p-4">
+                        <div class="card-body p-3 p-md-4">
                             <div class="d-flex align-items-start justify-content-between mb-3">
                                 <div>
                                     <h6 class="fw-semibold mb-0">Low Stock Alerts</h6>
                                     <p class="text-muted small mb-0">Items below threshold</p>
                                 </div>
-                                <a href="{% url 'dashboard:products' %}" class="btn btn-sm btn-outline-warning">Manage</a>
+                                <a href="{% url 'dashboard:products' %}"
+                                   class="btn btn-sm btn-outline-warning flex-shrink-0">Manage</a>
                             </div>
 
                             {% if low_stock_items %}
@@ -333,6 +368,7 @@
                                     <i class="bi bi-check-circle me-1"></i> All items well-stocked
                                 </small>
                             {% endif %}
+
                         </div>
                     </div>
                 </div>
