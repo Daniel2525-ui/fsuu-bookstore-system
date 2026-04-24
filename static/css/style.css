@@ -13,7 +13,10 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   SIDEBAR — width animation
+   SIDEBAR — desktop width animation
+   The collapsed class ONLY controls width on desktop/tablet.
+   On mobile it is ignored entirely — the sidebar uses
+   transform: translateX instead.
 ═══════════════════════════════════════════════════════════ */
 
 .sidebar {
@@ -28,12 +31,12 @@
     width: var(--sidebar-w-sm);
 }
 
-/* Scroll only when expanded */
+/* Scroll only when expanded on desktop */
 .sidebar:not(.sidebar--collapsed) {
     overflow-y: auto;
 }
 
-/* Kill transitions on first render */
+/* Kill all transitions on first render */
 .sidebar--no-transition,
 .sidebar--no-transition * {
     transition: none !important;
@@ -102,7 +105,7 @@
     color: var(--accent) !important;
 }
 
-/* ── CSS-only tooltip on collapsed icon links ── */
+/* ── CSS-only tooltip on collapsed desktop icons ── */
 .sidebar--collapsed .nav-link::after {
     content: attr(data-label);
     position: fixed;
@@ -162,63 +165,73 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   MOBILE SIDEBAR — slide-in overlay
-   FIX: removed pointer-events:none from base .sidebar on mobile.
-        Pointer blocking is now handled by the backdrop only.
-        sidebar--collapsed styles are overridden when mobile-open.
+   MOBILE SIDEBAR (≤ 767px)
+   KEY DESIGN:
+   - sidebar--collapsed is NEVER applied on mobile.
+   - The sidebar slides in/out via transform only.
+   - All collapsed-state CSS rules are neutralised here
+     so they cannot accidentally affect the mobile view.
 ═══════════════════════════════════════════════════════════ */
 
 @media (max-width: 767.98px) {
+
+    /* Slide-in overlay — always full width */
     .sidebar {
         position: fixed;
         inset: 0 auto 0 0;
-        /* FIX: always full width on mobile — collapsed class must not shrink it */
-        width: var(--sidebar-w) !important;
-        transform: translateX(-110%);
+        width: var(--sidebar-w) !important;   /* ignore collapsed width */
+        transform: translateX(-100%);
         z-index: 1050;
         overflow-y: auto;
-        transition: transform 0.3s var(--sidebar-ease);
-        /* FIX: do NOT set pointer-events:none here — it blocks the topbar toggle
-                indirectly and prevents any future inside-sidebar interactions */
+        /* Only transition: transform — no width transition on mobile */
+        transition: transform 0.3s var(--sidebar-ease) !important;
     }
 
     .sidebar.sidebar--mobile-open {
         transform: translateX(0);
     }
 
-    /* ── FIX: when open on mobile, undo all collapsed-state hiding ── */
-    .sidebar.sidebar--mobile-open .nav-link__label {
-        max-width: 180px !important;
-        opacity: 1 !important;
+    /* ── Neutralise ALL collapsed-state hiding rules on mobile ──
+       The sidebar--collapsed class may still be on the element
+       (it's set on page load), but on mobile we override every
+       rule it triggers so nothing is ever hidden.              */
+
+    .sidebar--collapsed {
+        width: var(--sidebar-w) !important;  /* width: already covered above */
     }
 
-    .sidebar.sidebar--mobile-open .sidebar__section-label {
+    .sidebar--collapsed .sidebar__brand {
+        opacity: 1 !important;
+        transform: scaleX(1) !important;
+        pointer-events: auto !important;
+    }
+
+    .sidebar--collapsed .sidebar__section-label {
         max-height: 40px !important;
         opacity: 1 !important;
         padding-top: revert !important;
         padding-bottom: revert !important;
     }
 
-    .sidebar.sidebar--mobile-open .sidebar__brand {
+    .sidebar--collapsed .nav-link__label {
+        max-width: 180px !important;
         opacity: 1 !important;
-        transform: scaleX(1) !important;
-        pointer-events: auto !important;
     }
 
-    .sidebar.sidebar--mobile-open .sidebar__footer {
+    .sidebar--collapsed .sidebar__footer {
         max-height: 80px !important;
         opacity: 1 !important;
         padding: 14px 16px !important;
         pointer-events: auto !important;
     }
 
-    /* ── FIX: suppress collapsed tooltips on mobile (they're for desktop only) ── */
+    /* Hide desktop-only tooltips on mobile */
     .sidebar--collapsed .nav-link::after {
         display: none !important;
     }
 }
 
-/* Tablet: collapsed by default, expands on toggle */
+/* Tablet: collapsed by default, expand on toggle */
 @media (min-width: 768px) and (max-width: 991.98px) {
     .sidebar                          { width: var(--sidebar-w-sm); }
     .sidebar:not(.sidebar--collapsed) { width: var(--sidebar-w); }

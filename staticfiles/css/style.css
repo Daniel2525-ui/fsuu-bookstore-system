@@ -324,7 +324,7 @@
    POS — sticky cart panel on large screens
 ═══════════════════════════════════════════════════════════ */
 
-@media (min-width: 992px) {
+@media (min-width: 992px) {git c
     .pos-cart-col {
         position: sticky;
         top: 24px;

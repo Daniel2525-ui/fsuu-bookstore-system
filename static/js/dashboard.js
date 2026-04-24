@@ -28,10 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const isMobile = () => window.innerWidth <= MOBILE_BP;
 
-    /**
-     * Restore saved desktop collapsed preference without a flash.
-     * Never called on mobile — mobile uses slide-in overlay instead.
-     */
+    // ── Desktop: restore saved collapsed preference ──────
+    // NEVER called on mobile. sidebar--collapsed is a
+    // desktop-only concept — it controls icon-only width.
     function restoreDesktopState() {
         const saved           = localStorage.getItem(STORAGE_KEY);
         const defaultCollapse = window.innerWidth <= 1024;
@@ -40,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar.classList.add('sidebar--no-transition');
         sidebar.classList.toggle('sidebar--collapsed', collapse);
 
-        // Two rAF frames: commit → paint → re-enable transitions
         requestAnimationFrame(() =>
             requestAnimationFrame(() =>
                 sidebar.classList.remove('sidebar--no-transition')
@@ -50,52 +48,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!isMobile()) restoreDesktopState();
 
-    // ── Desktop toggle ──────────────────────────────────
+    // ── Desktop toggle ───────────────────────────────────
+    // The toggle button inside the sidebar handles BOTH
+    // desktop collapse AND mobile close, depending on viewport.
     toggleDesktop?.addEventListener('click', () => {
-        if (isMobile()) return;
-        const collapsed = sidebar.classList.toggle('sidebar--collapsed');
-        localStorage.setItem(STORAGE_KEY, collapsed);
+        if (isMobile()) {
+            // On mobile the in-sidebar hamburger closes the drawer
+            closeMobile();
+        } else {
+            // On desktop it toggles the collapsed icon-only state
+            const collapsed = sidebar.classList.toggle('sidebar--collapsed');
+            localStorage.setItem(STORAGE_KEY, collapsed);
+        }
     });
 
-    // ── Mobile: open ────────────────────────────────────
+    // ── Mobile: open ─────────────────────────────────────
+    // KEY FIX: never touch sidebar--collapsed on mobile.
+    // The CSS already overrides all collapsed-state rules
+    // at ≤ 767px, so the sidebar always shows full content
+    // regardless of whether that class is present.
     toggleMobile?.addEventListener('click', openMobile);
 
     function openMobile() {
-        // FIX: remove sidebar--collapsed so nav labels/sections
-        //      are not hidden by the collapsed-state CSS rules.
-        sidebar.classList.remove('sidebar--collapsed');
         sidebar.classList.add('sidebar--mobile-open');
         backdrop.classList.add('show');
         document.body.style.overflow = 'hidden';
     }
 
-    // ── Mobile: close ───────────────────────────────────
+    // ── Mobile: close ────────────────────────────────────
+    // KEY FIX: never touch sidebar--collapsed here either.
+    // Just remove the mobile-open class — the sidebar slides
+    // back off-screen via transform. collapsed state is
+    // irrelevant on mobile and restored by restoreDesktopState
+    // if the user ever switches to a wider viewport.
     function closeMobile() {
         sidebar.classList.remove('sidebar--mobile-open');
-        // FIX: restore sidebar--collapsed when closing so desktop
-        //      styles are correct if the user rotates back to a
-        //      wider viewport while the sidebar was open.
-        sidebar.classList.add('sidebar--collapsed');
         backdrop.classList.remove('show');
         document.body.style.overflow = '';
     }
 
     backdrop?.addEventListener('click', closeMobile);
 
-    // Close on nav-link tap on mobile
+    // Close drawer when a nav link is tapped on mobile
     sidebar.querySelectorAll('.nav-link').forEach(link =>
         link.addEventListener('click', () => { if (isMobile()) closeMobile(); })
     );
 
-    // ── Resize handler ──────────────────────────────────
+    // ── Resize handler ───────────────────────────────────
     window.addEventListener('resize', () => {
         if (isMobile()) {
-            // Switching to mobile: ensure sidebar is hidden (not collapsed icon-only)
-            // and close any open mobile drawer cleanly.
+            // Crossed into mobile: close any open drawer cleanly.
+            // Do NOT call restoreDesktopState — that would add
+            // sidebar--collapsed which we don't want on mobile.
             closeMobile();
         } else {
-            // Switching to desktop: clean up any leftover mobile-open state
-            // and restore the user's desktop preference.
+            // Crossed into desktop: clean up mobile state and
+            // restore the user's desktop collapsed preference.
             sidebar.classList.remove('sidebar--mobile-open');
             backdrop.classList.remove('show');
             document.body.style.overflow = '';
@@ -198,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. PRODUCTS PAGE
     // ══════════════════════════════════════════════════════
 
-    // Edit modal: populate fields from trigger button's data attributes
     const editModal = document.getElementById('editProductModal');
     if (editModal) {
         editModal.addEventListener('show.bs.modal', e => {
@@ -214,7 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Delete modal: set product name and update form action
     const deleteModal = document.getElementById('deleteProductModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', e => {
@@ -225,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Shared filter — desktop table rows + mobile cards
     const searchInput    = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
     const stockFilter    = document.getElementById('stockFilter');
@@ -235,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileCards = document.querySelectorAll('.product-mobile-card');
 
     if (productRows.length || mobileCards.length) {
-
         function filterProducts() {
             const search   = searchInput?.value.toLowerCase()  ?? '';
             const category = categoryFilter?.value             ?? '';
@@ -451,7 +455,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let cart = {};
 
-    // Product card interactions
     document.querySelectorAll('.product-card').forEach(card => {
         card.style.cursor = 'pointer';
         card.addEventListener('mouseenter', function () {
@@ -474,7 +477,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Cart CRUD
     window.addToCart = (id, name, price, stock) => {
         if (cart[id]) {
             if (cart[id].qty >= stock) return;
@@ -605,7 +607,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(() => alert('An error occurred. Please try again.'));
     };
 
-    // POS product search + category filter
     const productSearch  = document.getElementById('product-search');
     const categorySelect = document.getElementById('category-filter');
 

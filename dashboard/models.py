@@ -11,6 +11,7 @@ class Category(models.Model):
         return self.category_name
 
     class Meta:
+        db_table = 'category'
         verbose_name_plural = 'Categories'
 
 
@@ -65,6 +66,9 @@ class Product(models.Model):
     def __str__(self):
         return self.product_name
 
+    class Meta:
+        db_table = 'products'
+
     @property
     def is_low_stock(self):
         return self.stock_quantity <= self.restock_threshold
@@ -85,6 +89,9 @@ class Sale(models.Model):
     def __str__(self):
         return f'Sale #{self.sales_id}'
 
+    class Meta:
+        db_table = 'sales'
+
 
 class SaleDetail(models.Model):
     sales_detail_id = models.AutoField(primary_key=True)
@@ -95,6 +102,9 @@ class SaleDetail(models.Model):
 
     def __str__(self):
         return f'{self.product.product_name} x{self.quantity}'
+
+    class Meta:
+        db_table = 'sales_details'
 
     @property
     def subtotal(self):
