@@ -11,7 +11,7 @@ class Category(models.Model):
         return self.category_name
 
     class Meta:
-        db_table = 'category'
+        db_table         = 'category'
         verbose_name_plural = 'Categories'
 
 
@@ -22,7 +22,6 @@ class Product(models.Model):
     category          = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     stock_quantity    = models.IntegerField()
     product_code      = models.CharField(max_length=20, unique=True, blank=True)  # auto-generated
-
     restock_threshold = models.PositiveIntegerField(default=5)
     is_active         = models.BooleanField(default=True)
     created_at        = models.DateTimeField(auto_now_add=True)
@@ -35,7 +34,6 @@ class Product(models.Model):
         category_code = self.category.code.upper()
 
         with transaction.atomic():
-            # Lock all existing products in this category to prevent race conditions
             last_product = (
                 Product.objects.select_for_update()
                 .filter(
@@ -58,7 +56,6 @@ class Product(models.Model):
             return f"{category_code}-{next_number:04d}"
 
     def save(self, *args, **kwargs):
-        # Only generate product_code on creation (not on every update)
         if not self.product_code:
             self.product_code = self.generate_product_code()
         super().save(*args, **kwargs)
@@ -78,6 +75,13 @@ class Sale(models.Model):
     sales_id       = models.AutoField(primary_key=True)
     sales_datetime = models.DateTimeField(auto_now_add=True)
     total_amount   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    # ── Payment fields ──────────────────────────────────────
+    # Stored on the Sale so the receipt always shows the correct
+    # values regardless of how it is opened (POS or Transactions).
+    cash_tendered  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    change_amount  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # ────────────────────────────────────────────────────────
 
     STATUS_CHOICES = [
         ('completed', 'Completed'),

@@ -142,7 +142,7 @@ def pos_checkout(request):
             return JsonResponse({'success': False, 'error': 'No items in cart.'})
 
         order_items = []
-        total = 0
+        total       = 0
 
         for entry in items:
             product = get_object_or_404(Product, pk=entry['id'], is_active=True)
@@ -160,7 +160,16 @@ def pos_checkout(request):
         if cash_tendered < total:
             return JsonResponse({'success': False, 'error': 'Cash tendered is less than the total.'})
 
-        sale = Sale.objects.create(total_amount=total, status='completed')
+        change = round(cash_tendered - total, 2)
+
+        # FIX: save cash_tendered and change_amount on the Sale record
+        # so the receipt always reads correct values from the DB.
+        sale = Sale.objects.create(
+            total_amount  = total,
+            status        = 'completed',
+            cash_tendered = cash_tendered,
+            change_amount = change,
+        )
 
         for item in order_items:
             SaleDetail.objects.create(
@@ -172,14 +181,13 @@ def pos_checkout(request):
             item['product'].stock_quantity -= item['qty']
             item['product'].save()
 
-        change = round(cash_tendered - total, 2)
-
         return JsonResponse({
             'success':        True,
             'transaction_id': sale.sales_id,
             'total':          total,
             'change':         change,
-            'receipt_url':    f'/receipt/{sale.sales_id}/?change={change}&cash={cash_tendered}',
+            # FIX: clean URL — no query params needed, data is in the DB
+            'receipt_url':    f'/receipt/{sale.sales_id}/',
         })
 
     except (ValueError, KeyError) as e:
@@ -188,16 +196,15 @@ def pos_checkout(request):
 
 # ================= Receipt =================
 def receipt(request, pk):
-    sale          = get_object_or_404(Sale, pk=pk)
-    items         = sale.details.select_related('product').all()
-    change        = float(request.GET.get('change', 0))
-    cash_tendered = float(request.GET.get('cash', 0))
+    sale  = get_object_or_404(Sale, pk=pk)
+    items = sale.details.select_related('product').all()
 
+    # FIX: read directly from the Sale model, not from query params
     context = {
         'transaction':   sale,
         'items':         items,
-        'change':        change,
-        'cash_tendered': cash_tendered,
+        'cash_tendered': sale.cash_tendered,
+        'change':        sale.change_amount,
     }
     return render(request, 'dashboard/receipt.html', context)
 
