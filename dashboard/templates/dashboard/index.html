@@ -23,7 +23,7 @@
            class="sidebar sidebar--collapsed sidebar--no-transition
                   d-flex flex-column flex-shrink-0 bg-white border-end">
 
-        <!-- Header --> 
+        <!-- Header -->
         <div class="sidebar__header d-flex align-items-center gap-3 px-3 border-bottom flex-shrink-0"
              style="min-height:62px;">
             <button id="sidebarToggleDesktop"
@@ -140,7 +140,7 @@
             </button>
             <span class="fw-bold fs-5"><span class="text-primary">FSUU</span> Bookstore</span>
         </div>
-        
+
         <div class="container-xl py-4 px-3 px-lg-4">
             {% block content %}
 
@@ -155,9 +155,7 @@
 
             <hr class="mb-4">
 
-            <!-- Stat Cards
-                 xl: 4 across | md: 2 across | mobile: 2 across
-            -->
+            <!-- Stat Cards -->
             <div class="row g-3 mb-4">
 
                 <div class="col-6 col-md-6 col-xl-3">
@@ -355,11 +353,17 @@
                                 {% for item in low_stock_items %}
                                 <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
                                     <div class="d-flex align-items-center gap-2 overflow-hidden">
-                                        <i class="bi bi-exclamation-circle text-warning flex-shrink-0"></i>
+                                        {# Icon: red when out of stock, yellow when low #}
+                                        <i class="bi bi-exclamation-circle flex-shrink-0
+                                            {% if item.stock_quantity == 0 %}text-danger{% else %}text-warning{% endif %}">
+                                        </i>
                                         <small class="fw-medium text-truncate">{{ item.product_name }}</small>
                                     </div>
-                                    <span class="badge bg-warning-subtle text-warning ms-2 flex-shrink-0">
-                                        {{ item.stock_quantity }} left
+                                    {# Badge: red when out of stock, yellow when low #}
+                                    <span class="badge ms-2 flex-shrink-0
+                                        {% if item.stock_quantity == 0 %}bg-danger-subtle text-danger
+                                        {% else %}bg-warning-subtle text-warning{% endif %}">
+                                        {% if item.stock_quantity == 0 %}Out of stock{% else %}{{ item.stock_quantity }} left{% endif %}
                                     </span>
                                 </div>
                                 {% endfor %}
