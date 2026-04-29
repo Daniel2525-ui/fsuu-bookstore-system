@@ -1,5 +1,4 @@
-from django.db import models
-from django.db import transaction
+from django.db import models, transaction
 
 
 class Category(models.Model):
@@ -11,7 +10,7 @@ class Category(models.Model):
         return self.category_name
 
     class Meta:
-        db_table         = 'category'
+        db_table            = 'category'
         verbose_name_plural = 'Categories'
 
 
@@ -19,45 +18,55 @@ class Product(models.Model):
     product_id        = models.AutoField(primary_key=True)
     product_name      = models.CharField(max_length=100)
     price             = models.DecimalField(max_digits=10, decimal_places=2)
-    category          = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+    category          = models.ForeignKey(
+                            Category, on_delete=models.SET_NULL,
+                            null=True, blank=True
+                        )
     stock_quantity    = models.IntegerField()
-    product_code      = models.CharField(max_length=20, unique=True, blank=True)  # auto-generated
+    product_code      = models.CharField(max_length=20, unique=True, blank=True)
     restock_threshold = models.PositiveIntegerField(default=5)
     is_active         = models.BooleanField(default=True)
     created_at        = models.DateTimeField(auto_now_add=True)
 
     def generate_product_code(self):
-        """Generate a unique product code like BOOK-0001."""
-        if not self.category:
-            return None
-
-        category_code = self.category.code.upper()
+        """
+        Generate a unique product code like BOOK-0001.
+        Falls back to MISC when no category is assigned so the
+        column is never left blank (which violates unique=True).
+        Uses MAX on the numeric suffix instead of string sort so
+        BOOK-0010 always beats BOOK-0009.
+        """
+        category_code = self.category.code.upper() if self.category else "MISC"
+        prefix        = f"{category_code}-"
 
         with transaction.atomic():
-            last_product = (
-                Product.objects.select_for_update()
-                .filter(
-                    category=self.category,
-                    product_code__startswith=f"{category_code}-"
-                )
-                .order_by('-product_code')
-                .first()
+            # Pull only products in this category prefix, locked for update
+            existing = (
+                Product.objects
+                .select_for_update()
+                .filter(product_code__startswith=prefix)
+                .values_list('product_code', flat=True)
             )
 
-            if last_product and last_product.product_code:
+            # Find the highest numeric suffix currently in use
+            max_number = 0
+            for code in existing:
                 try:
-                    last_number = int(last_product.product_code.split('-')[-1])
-                    next_number = last_number + 1
+                    num = int(code.split('-')[-1])
+                    if num > max_number:
+                        max_number = num
                 except ValueError:
-                    next_number = 1
-            else:
-                next_number = 1
+                    pass
 
-            return f"{category_code}-{next_number:04d}"
+            return f"{prefix}{max_number + 1:04d}"
 
     def save(self, *args, **kwargs):
         if not self.product_code:
             self.product_code = self.generate_product_code()
+            # Extremely rare race-condition safety net
+            while Product.objects.filter(product_code=self.product_code).exists():
+                prefix, _, suffix = self.product_code.rpartition('-')
+                self.product_code  = f"{prefix}-{int(suffix) + 1:04d}"
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -75,13 +84,8 @@ class Sale(models.Model):
     sales_id       = models.AutoField(primary_key=True)
     sales_datetime = models.DateTimeField(auto_now_add=True)
     total_amount   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-
-    # ── Payment fields ──────────────────────────────────────
-    # Stored on the Sale so the receipt always shows the correct
-    # values regardless of how it is opened (POS or Transactions).
     cash_tendered  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     change_amount  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    # ────────────────────────────────────────────────────────
 
     STATUS_CHOICES = [
         ('completed', 'Completed'),

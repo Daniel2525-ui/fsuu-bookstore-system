@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.db.models import Sum, F, Count
 from django.db.models import ProtectedError
+from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from datetime import timedelta
@@ -10,12 +11,12 @@ import json
 from .models import Product, Sale, SaleDetail, Category
 
 
+# ================= Dashboard =================
+
 def dashboard(request):
-    # ================= Date calculations =================
     today    = timezone.now().date()
     week_ago = today - timedelta(days=7)
 
-    # ================= Dashboard stats =================
     total_revenue     = Sale.objects.aggregate(total=Sum('total_amount'))['total'] or 0
     revenue_this_week = Sale.objects.filter(sales_datetime__date__gte=week_ago).aggregate(total=Sum('total_amount'))['total'] or 0
     total_sales       = Sale.objects.count()
@@ -25,7 +26,6 @@ def dashboard(request):
 
     recent_transactions = Sale.objects.order_by('-sales_datetime')[:10]
 
-    # ================= Charts =================
     chart_labels, chart_values = [], []
     for i in range(6, -1, -1):
         day     = today - timedelta(days=i)
@@ -62,6 +62,7 @@ def dashboard(request):
 
 
 # ================= Products =================
+
 def products(request):
     all_products     = Product.objects.filter(is_active=True).select_related('category').order_by('product_name')
     categories       = Category.objects.all()
@@ -84,39 +85,52 @@ def products(request):
 
 def product_add(request):
     if request.method == 'POST':
-        Product.objects.create(
-            product_name      = request.POST['name'],
-            category_id       = request.POST.get('category') or None,
-            price             = request.POST['price'],
-            stock_quantity    = request.POST['stock'],
-            restock_threshold = request.POST.get('restock_threshold') or 5,
-            is_active         = 'is_active' in request.POST,
-        )
+        try:
+            Product.objects.create(
+                product_name      = request.POST['name'],
+                category_id       = request.POST.get('category') or None,
+                price             = request.POST['price'],
+                stock_quantity    = request.POST['stock'],
+                restock_threshold = request.POST.get('restock_threshold') or 5,
+                is_active         = 'is_active' in request.POST,
+            )
+            messages.success(request, 'Product added successfully.')
+        except Exception as e:
+            messages.error(request, f'Failed to add product: {e}')
     return redirect('dashboard:products')
 
 
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
-        product.product_name      = request.POST['name']
-        product.category_id       = request.POST.get('category') or None
-        product.price             = request.POST['price']
-        product.stock_quantity    = request.POST['stock']
-        product.restock_threshold = request.POST.get('restock_threshold') or 5
-        product.is_active         = 'is_active' in request.POST
-        product.save()
+        try:
+            product.product_name      = request.POST['name']
+            product.category_id       = request.POST.get('category') or None
+            product.price             = request.POST['price']
+            product.stock_quantity    = request.POST['stock']
+            product.restock_threshold = request.POST.get('restock_threshold') or 5
+            product.is_active         = 'is_active' in request.POST
+            product.save()
+            messages.success(request, 'Product updated successfully.')
+        except Exception as e:
+            messages.error(request, f'Failed to update product: {e}')
     return redirect('dashboard:products')
 
 
 def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
-        product.is_active = False
-        product.save()
+        try:
+            product.is_active = False
+            product.save()
+            messages.success(request, f'"{product.product_name}" has been deactivated.')
+        except Exception as e:
+            messages.error(request, f'Failed to delete product: {e}')
     return redirect('dashboard:products')
 
 
 # ================= Point of Sale =================
+
 def point_of_sale(request):
     products   = Product.objects.filter(is_active=True).select_related('category').order_by('product_name')
     categories = Category.objects.all()
@@ -162,8 +176,6 @@ def pos_checkout(request):
 
         change = round(cash_tendered - total, 2)
 
-        # FIX: save cash_tendered and change_amount on the Sale record
-        # so the receipt always reads correct values from the DB.
         sale = Sale.objects.create(
             total_amount  = total,
             status        = 'completed',
@@ -186,7 +198,6 @@ def pos_checkout(request):
             'transaction_id': sale.sales_id,
             'total':          total,
             'change':         change,
-            # FIX: clean URL — no query params needed, data is in the DB
             'receipt_url':    f'/receipt/{sale.sales_id}/',
         })
 
@@ -195,11 +206,11 @@ def pos_checkout(request):
 
 
 # ================= Receipt =================
+
 def receipt(request, pk):
     sale  = get_object_or_404(Sale, pk=pk)
     items = sale.details.select_related('product').all()
 
-    # FIX: read directly from the Sale model, not from query params
     context = {
         'transaction':   sale,
         'items':         items,
@@ -210,6 +221,7 @@ def receipt(request, pk):
 
 
 # ================= Transactions =================
+
 def transactions(request):
     today    = timezone.now().date()
     week_ago = today - timedelta(days=7)
@@ -236,12 +248,12 @@ def transactions(request):
 
 
 # ================= Reports =================
+
 def reports(request):
     today     = timezone.now().date()
     week_ago  = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
 
-    # ── Summary stats ─────────────────────────────────────────
     total_revenue = Sale.objects.aggregate(t=Sum('total_amount'))['t'] or 0
     month_revenue = Sale.objects.filter(sales_datetime__date__gte=month_ago).aggregate(t=Sum('total_amount'))['t'] or 0
     week_revenue  = Sale.objects.filter(sales_datetime__date__gte=week_ago).aggregate(t=Sum('total_amount'))['t'] or 0
@@ -249,7 +261,6 @@ def reports(request):
     month_orders  = Sale.objects.filter(sales_datetime__date__gte=month_ago).count()
     avg_order     = round(float(total_revenue) / total_orders, 2) if total_orders else 0
 
-    # ── Daily revenue — last 30 days ──────────────────────────
     daily_labels, daily_values = [], []
     for i in range(29, -1, -1):
         day     = today - timedelta(days=i)
@@ -257,7 +268,6 @@ def reports(request):
         daily_labels.append(day.strftime('%b %d'))
         daily_values.append(float(revenue))
 
-    # ── Top 10 best-selling products (all time) ───────────────
     top_products = (
         SaleDetail.objects
         .values('product__product_name')
@@ -265,7 +275,6 @@ def reports(request):
         .order_by('-units_sold')[:10]
     )
 
-    # ── Revenue by category (all time) ───────────────────────
     category_data = (
         SaleDetail.objects
         .values('product__category__category_name')
@@ -275,7 +284,6 @@ def reports(request):
     cat_labels = [c['product__category__category_name'] or 'Uncategorized' for c in category_data]
     cat_values = [float(c['revenue']) for c in category_data]
 
-    # ── Monthly revenue — last 12 months ─────────────────────
     monthly_labels, monthly_values = [], []
     for i in range(11, -1, -1):
         month_start = (today.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
