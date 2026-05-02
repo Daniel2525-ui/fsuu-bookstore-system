@@ -29,13 +29,6 @@ class Product(models.Model):
     created_at        = models.DateTimeField(auto_now_add=True)
 
     def generate_product_code(self):
-        """
-        Generate a unique product code like BOOK-0001.
-        Falls back to MISC when no category is assigned so the
-        column is never left blank (which violates unique=True).
-        Uses MAX on the numeric suffix instead of string sort so
-        BOOK-0010 always beats BOOK-0009.
-        """
         category_code = self.category.code.upper() if self.category else "MISC"
         prefix        = f"{category_code}-"
 
@@ -79,7 +72,7 @@ class Product(models.Model):
     def is_low_stock(self):
         return self.stock_quantity <= self.restock_threshold
 
-
+""" ERD BASED ENTITIES """
 class Sale(models.Model):
     sales_id       = models.AutoField(primary_key=True)
     sales_datetime = models.DateTimeField(auto_now_add=True)
